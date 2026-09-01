@@ -30,21 +30,18 @@ def key_concepts(state: AgentState, llm) -> dict:
         [
             (
                 "system",
-                """
-                You are an expert in identifying key concepts in study notes.
-
-                Your task is to extract the most important ideas, terms,
-                and concepts from the provided summary.
-
-                Focus only on the core concepts that are important
-                for understanding and studying the material.
-
-                Return concise concept names.
-                """,
+                "You are an expert in knowledge extraction. Extract 8-15 key concepts from the provided summary.\n\n"
+                "Guidelines:\n"
+                "- Include only the most important and foundational terms/concepts\n"
+                "- Use consistent, clear naming (single noun or short phrase)\n"
+                "- Avoid redundancy - do not list similar variations\n"
+                "- Order by importance/frequency of mention\n"
+                "- Each concept should be fundamental to understanding the material\n\n"
+                "Focus on concepts, not definitions.",
             ),
             (
                 "human",
-                "Summary:\n\n{summary_result}",
+                "Extract key concepts from this summary:\n\n{summary_result}",
             ),
         ]
     )
