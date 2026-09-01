@@ -8,7 +8,6 @@ from agent.nodes.quiz_generation_node import quiz_generation
 from functools import partial
 
 
-
 def build_workflow(llm):
     """
     Build the workflow graph for the agent.
@@ -33,20 +32,3 @@ def build_workflow(llm):
     graph.add_edge('quiz_generation', END)
 
     return graph
-
-
-if __name__ == "__main__":
-    llm = load_llm()  # Load the LLM instance
-    # Build and compile the workflow
-    workflow = build_workflow(llm)
-    app = workflow.compile()
-
-    # Execute the workflow with initial state inputs
-    initial_state = {
-        "title": "Introduction to Quantum Computing",
-        "subject": "Physics",
-        "content": "Quantum computing leverages quantum mechanics principles like superposition and entanglement..."
-    }
-
-    result = app.invoke(initial_state)
-    print(result)

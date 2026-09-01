@@ -51,17 +51,3 @@ def analyze(state: AgentState, llm=None) -> dict:
     return {"analysis_result": response.content}
 
 
-if __name__ == "__main__":
-    # Example usage
-    state = AgentState(
-        note_id="note_001",
-        note_title="The Impact of Climate Change on Biodiversity",
-        note_subject="Environmental Science",
-        note_content="Climate change has significant effects on biodiversity. Rising temperatures, changing precipitation patterns, and increased frequency of extreme weather events can lead to habitat loss, species migration, and extinction. Conservation efforts are essential to mitigate these impacts.",
-        analysis_result="",
-        summary_result="",
-        key_concepts=[],
-        generated_questions=[],
-    )
-    analysis_result = analyze(state)
-    print(analysis_result)
