@@ -4,26 +4,27 @@ from agent.model.llm import load_llm
 from pydantic import BaseModel, Field
 
 
-class KeyConceptsState(BaseModel):
-    key_concepts: list[str] = Field(
-        ..., description="List of key concepts extracted from the analysis"
+
+
+class QuizGenerationState(BaseModel):
+    generated_questions: list[str] = Field(
+        ..., description="List of quiz questions generated based on the key concepts"
     )
 
-
-def key_concepts(state: AgentState, llm) -> dict:
+def quiz_generation(state: AgentState, llm) -> dict:
     """
-    Extract key concepts from the summary result.
+    Use key concepts to generate quiz questions.
 
     Args:
         state: Current agent state.
         llm: LLM instance injected by the workflow.
 
     Returns:
-        Dictionary containing extracted key concepts.
+        Dictionary containing generated quiz questions.
     """
 
     # Create a structured-output version of the injected LLM
-    structured_llm = llm.with_structured_output(KeyConceptsState)
+    structured_llm = llm.with_structured_output(QuizGenerationState)
 
     # Define the prompt
     prompt = ChatPromptTemplate.from_messages(
@@ -31,20 +32,15 @@ def key_concepts(state: AgentState, llm) -> dict:
             (
                 "system",
                 """
-                You are an expert in identifying key concepts in study notes.
+                You are an expert in generating quiz questions based on study notes.
 
-                Your task is to extract the most important ideas, terms,
-                and concepts from the provided summary.
-
-                Focus only on the core concepts that are important
-                for understanding and studying the material.
-
-                Return concise concept names.
+                Your task is to create a set of quiz questions that test the understanding of the key concepts extracted from the provided summary.
+                Focus on creating questions that are clear, concise, and relevant to the material.
                 """,
             ),
             (
                 "human",
-                "Summary:\n\n{summary_result}",
+                "Summary:\n\n{summary_result} \n\nKey Concepts:\n\n{key_concepts}",
             ),
         ]
     )
@@ -53,14 +49,15 @@ def key_concepts(state: AgentState, llm) -> dict:
     formatted_prompt = prompt.invoke(
         {
             "summary_result": state.summary_result,
+            "key_concepts": state.key_concepts,
         }
     )
 
     # Invoke the structured-output LLM
     response = structured_llm.invoke(formatted_prompt)
 
-    # response is already a KeyConceptsState object
-    return {"key_concepts": response.key_concepts}
+    # response is already a QuizGenerationState object
+    return {"generated_questions": response.generated_questions}
 
 
 if __name__ == "__main__":
@@ -117,14 +114,14 @@ if __name__ == "__main__":
         temperature rise, altered precipitation, extreme weather events,
         habitat loss, species migration, extinction, and conservation.
         """,
-        key_concepts=[],
-        generated_questions=[],
+        key_concepts= ['biodiversity', 'climate change', 'temperature rise', 'altered precipitation', 'extreme weather events', 'habitat loss', 'range shifts', 'species migration', 'extinction risk', 'conservation', 'protection', 'restoration', 'adaptive planning'],
+        generated_questions= ['Define biodiversity and explain how climate change threatens it through temperature rise, altered precipitation, and extreme weather events.', 'Which climate-change-related changes are identified as drivers of habitat loss and higher extinction risk (temperature rise, altered precipitation, extreme weather events)?', 'How does a rise in temperature cause species to shift or migrate their geographic ranges (range shifts)?', 'What is meant by altered precipitation, and how can it impact habitats and biodiversity?', 'What are extreme weather events and how can they increase extinction risk for species?', 'Define habitat loss and describe how climate change contributes to it.', 'What are range shifts and species migration, and why do they occur in response to climate change?', 'What is extinction risk, and how is it affected by climate change?', 'What are the three main components of conservation actions to mitigate climate-change impacts (protection, restoration, adaptive planning)?', 'How do protection and restoration differ in the context of conservation?', 'What is adaptive planning in conservation, and why is it important under climate-change conditions?', 'Scenario: If a species shifts its range to higher elevations due to warming, what conservation actions would help it persist (e.g., protect new habitats, restore degraded areas, and adjust protections through adaptive planning)?'],
     )
 
     # Create the LLM
     llm = load_llm()
 
     # Pass the LLM into the node
-    result = key_concepts(state, llm)
+    result = quiz_generation(state, llm)
 
     print(result)
