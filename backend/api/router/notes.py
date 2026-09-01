@@ -102,3 +102,7 @@ def update_note(note_id: str, note: NoteUpdate, db: Session = Depends(get_db)):
     db.refresh(db_note)
 
     return db_note
+
+@router.post("/summarize/{note_id}")
+def summarize_note(note_id: str):
+    pass
