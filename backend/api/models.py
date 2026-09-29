@@ -11,5 +11,6 @@ class Note(Base):
     title = Column(String, nullable=False)
     subject = Column(String, nullable=False)
     content = Column(String, nullable=False)
+    quiz = Column(String, nullable=True)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, nullable=False)
