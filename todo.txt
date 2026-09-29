@@ -1,0 +1,1 @@
+streaming endpoint is working exactly like non-streaming endpoint
