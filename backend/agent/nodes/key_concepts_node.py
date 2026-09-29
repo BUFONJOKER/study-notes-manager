@@ -10,7 +10,7 @@ class KeyConceptsState(BaseModel):
     )
 
 
-def key_concepts(state: AgentState, llm) -> dict:
+async def key_concepts(state: AgentState, llm) -> dict:
     """
     Extract key concepts from the summary result.
 
@@ -54,9 +54,7 @@ def key_concepts(state: AgentState, llm) -> dict:
     )
 
     # Invoke the structured-output LLM
-    response = structured_llm.invoke(formatted_prompt)
+    response = await structured_llm.ainvoke(formatted_prompt)
 
     # response is already a KeyConceptsState object
     return {"key_concepts": response.key_concepts}
-
-

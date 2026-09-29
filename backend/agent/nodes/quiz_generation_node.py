@@ -10,7 +10,7 @@ class QuizGenerationState(BaseModel):
     )
 
 
-def quiz_generation(state: AgentState, llm) -> dict:
+async def quiz_generation(state: AgentState, llm) -> dict:
     """
     Use key concepts to generate quiz questions.
 
@@ -54,9 +54,7 @@ def quiz_generation(state: AgentState, llm) -> dict:
     )
 
     # Invoke the structured-output LLM
-    response = structured_llm.invoke(formatted_prompt)
+    response = await structured_llm.ainvoke(formatted_prompt)
 
     # response is already a QuizGenerationState object
     return {"generated_questions": response.generated_questions}
-
-

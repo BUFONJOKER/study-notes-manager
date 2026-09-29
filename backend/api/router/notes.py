@@ -1,9 +1,16 @@
+from collections.abc import AsyncIterator
 from fastapi import APIRouter, Depends, HTTPException, status
-from api.schemas import NoteCreate, NoteResponse, NoteUpdate
+from fastapi.responses import StreamingResponse
+import json
+
+from api.schemas import NoteCreate, NoteResponse, NoteUpdate, QuizGenerationResponse
 from api.models import Note
 from sqlalchemy.orm import Session
 from datetime import datetime
 from api.database import SessionLocal
+from agent.model.llm import load_llm
+from agent.schemas.main import AgentState
+from agent.workflow import build_workflow
 
 router = APIRouter()
 
@@ -15,6 +22,12 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@router.get("/get_all_names", response_model=list[str])
+async def get_all_names(db: Session = Depends(get_db)):
+    """Get all unique user names from the database."""
+    user_names = db.query(Note.user_name).distinct().all()
+    return [name[0] for name in user_names]
 
 
 @router.get("/{user_name}", response_model=list[NoteResponse])
@@ -103,6 +116,83 @@ def update_note(note_id: str, note: NoteUpdate, db: Session = Depends(get_db)):
 
     return db_note
 
-@router.post("/quiz_generation/{note_id}")
-def quiz_generation(note_id: str, db: Session = Depends(get_db)):
-    pass
+
+def _initial_agent_state(db_note: Note) -> AgentState:
+    return AgentState(
+        note_id=db_note.note_id,
+        note_title=db_note.title,
+        note_subject=db_note.subject,
+        note_content=db_note.content,
+    )
+
+
+def _save_quiz(db: Session, db_note: Note, result: dict) -> None:
+    db_note.quiz = json.dumps(result["generated_questions"])
+    db_note.updated_at = datetime.now()
+    db.commit()
+
+
+@router.post("/quiz_generation/{note_id}", response_model=QuizGenerationResponse)
+async def quiz_generation(note_id: str, db: Session = Depends(get_db)):
+    """Run the complete analysis workflow and save the generated quiz."""
+    db_note = db.query(Note).filter(Note.note_id == note_id).first()
+
+    if not db_note:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Note with note_id '{note_id}' not found.",
+        )
+
+    initial_state = _initial_agent_state(db_note)
+    workflow = build_workflow(load_llm()).compile()
+    result = await workflow.ainvoke(initial_state.model_dump())
+
+    _save_quiz(db, db_note, result)
+
+    return QuizGenerationResponse(
+        note_id=db_note.note_id,
+        analysis_result=result["analysis_result"],
+        summary_result=result["summary_result"],
+        key_concepts=result["key_concepts"],
+        generated_questions=result["generated_questions"],
+    )
+
+
+@router.post("/quiz_generation/{note_id}/stream")
+async def quiz_generation_stream(note_id: str, db: Session = Depends(get_db)):
+    """Run the workflow and stream each completed node as server-sent events."""
+    db_note = db.query(Note).filter(Note.note_id == note_id).first()
+
+    if not db_note:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Note with note_id '{note_id}' not found.",
+        )
+
+    initial_state = _initial_agent_state(db_note)
+    workflow = build_workflow(load_llm()).compile()
+
+    async def event_stream() -> AsyncIterator[str]:
+        result = initial_state.model_dump()
+
+        async for update in workflow.astream(
+            initial_state.model_dump(), stream_mode="updates"
+        ):
+            for node_name, node_update in update.items():
+                result.update(node_update)
+                yield (
+                    "event: workflow_update\n"
+                    f"data: {json.dumps({'node': node_name, 'data': node_update})}\n\n"
+                )
+
+        _save_quiz(db, db_note, result)
+        yield (
+            "event: complete\n"
+            f"data: {json.dumps(QuizGenerationResponse(**result).model_dump())}\n\n"
+        )
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

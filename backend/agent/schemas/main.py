@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 
+
 class AgentState(BaseModel):
     """State container passed between nodes in the agent's workflow."""
 
@@ -8,7 +9,16 @@ class AgentState(BaseModel):
     note_subject: str = Field(..., example="My Note Subject")
     note_content: str = Field(..., example="This is the content of my note.")
 
-    analysis_result: str = Field(..., example="This is the result of the analysis.")
-    summary_result: str = Field(..., example="This is the result of the summary.")
-    key_concepts: list[str] = Field(..., example=["concept1", "concept2", "concept3"])
-    generated_questions: list[str] = Field(..., example=["What is the main idea?", "What are the key points?"])
+    analysis_result: str = Field(
+        default="", example="This is the result of the analysis."
+    )
+    summary_result: str = Field(
+        default="", example="This is the result of the summary."
+    )
+    key_concepts: list[str] = Field(
+        default_factory=list, example=["concept1", "concept2", "concept3"]
+    )
+    generated_questions: list[str] = Field(
+        default_factory=list,
+        example=["What is the main idea?", "What are the key points?"],
+    )

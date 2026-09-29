@@ -4,7 +4,7 @@ from agent.schemas.main import AgentState
 from agent.model.llm import load_llm
 
 
-def summary(state: AgentState, llm=None) -> dict:
+async def summary(state: AgentState, llm=None) -> dict:
     """
     Generate a concise summary based on the analysis result.
 
@@ -44,8 +44,6 @@ def summary(state: AgentState, llm=None) -> dict:
     )
 
     # Invoke model and return response
-    response = model.invoke(formatted_prompt)
+    response = await model.ainvoke(formatted_prompt)
 
     return {"summary_result": response.content}
-
-

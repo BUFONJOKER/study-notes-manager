@@ -4,7 +4,7 @@ from agent.schemas.main import AgentState
 from agent.model.llm import load_llm
 
 
-def analyze(state: AgentState, llm=None) -> dict:
+async def analyze(state: AgentState, llm=None) -> dict:
     """
     Analyze the study notes and generate a comprehensive analysis report.
 
@@ -46,8 +46,6 @@ def analyze(state: AgentState, llm=None) -> dict:
     )
 
     # Invoke model and return response
-    response = model.invoke(formatted_prompt)
+    response = await model.ainvoke(formatted_prompt)
 
     return {"analysis_result": response.content}
-
-
