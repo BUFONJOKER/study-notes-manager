@@ -1,0 +1,300 @@
+# 📚 Study Notes Manager Backend
+
+The backend for **Study Notes Manager** is a FastAPI application for creating, reading, updating, and deleting study notes. It also uses an OpenAI language model and a LangGraph workflow to analyze notes and generate summaries, key concepts, and quiz questions.
+
+## ✨ Features
+
+- 📝 Create and update study notes
+- 📖 Retrieve all notes for a username
+- 🗑️ Delete notes by their unique note ID
+- 🤖 Analyze notes with `gpt-5-nano`
+- 🧠 Generate summaries and key concepts
+- ❓ Generate 8–12 quiz questions from a note
+- 📡 Stream AI workflow progress using Server-Sent Events (SSE)
+- 🗄️ Store notes in PostgreSQL using SQLAlchemy
+- 🔄 Manage database schema changes with Alembic
+
+## 🛠️ Technologies
+
+- 🐍 Python 3.12 or newer
+- ⚡ FastAPI
+- 🚀 Uvicorn
+- 🗄️ PostgreSQL 17
+- 🔗 SQLAlchemy
+- 🔄 Alembic
+- 🤖 LangChain and LangChain OpenAI
+- 🧩 LangGraph
+- 🔐 python-dotenv
+
+## 📂 Backend Structure
+
+```text
+backend/
+├── agent/
+│   ├── model/
+│   │   └── llm.py                 # OpenAI chat model configuration
+│   ├── nodes/                     # LangGraph workflow nodes
+│   │   ├── analyze_node.py
+│   │   ├── key_concepts_node.py
+│   │   ├── quiz_generation_node.py
+│   │   └── summary_node.py
+│   ├── schemas/
+│   │   └── main.py                # Agent workflow state
+│   ├── main.py
+│   └── workflow.py                 # LangGraph workflow definition
+├── alembic/
+│   ├── versions/                  # Database migration revisions
+│   └── env.py                     # Alembic database configuration
+├── api/
+│   ├── database.py                # SQLAlchemy engine and sessions
+│   ├── models.py                  # Database models
+│   ├── schemas.py                 # Request and response schemas
+│   └── router/
+│       └── notes.py                # Note and quiz endpoints
+├── alembic.ini
+├── config.py                      # Environment configuration
+├── docker-compose.yml             # PostgreSQL container
+├── main.py                        # FastAPI application entry point
+└── pyproject.toml                 # Project metadata and dependencies
+```
+
+## ⚙️ Setup and Installation
+
+### 1. Requirements
+
+Install the following before starting:
+
+- Python 3.12 or newer
+- [uv](https://docs.astral.sh/uv/) for Python environments and dependencies
+- Docker Desktop, if you want to run PostgreSQL in a container
+- An OpenAI API key for AI-powered features
+
+### 2. Create and activate a virtual environment
+
+From the `backend` directory:
+
+```bash
+uv venv
+```
+
+On Windows PowerShell:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+On macOS or Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+### 3. Install dependencies with uv
+
+```bash
+uv sync
+```
+
+`uv sync` creates or updates `.venv` and installs the dependencies declared in `pyproject.toml`, using `uv.lock` when it is available.
+
+## 🔐 Environment Variables
+
+Create a file named `.env` inside the `backend` directory:
+
+```env
+DATABASE_URL=postgresql://study_notes_user:study_notes_password_12345@localhost:5432/mydatabase
+OPENAI_API_KEY=your_openai_api_key
+
+LANGSMITH_TRACING=true
+LANGSMITH_ENDPOINT=https://api.smith.langchain.com
+LANGSMITH_API_KEY=your_langsmith_api_key
+LANGSMITH_PROJECT=study-notes-manager
+```
+
+### Variables
+
+| Variable | Purpose | Required |
+| --- | --- | --- |
+| `DATABASE_URL` | SQLAlchemy connection URL for PostgreSQL | Yes |
+| `OPENAI_API_KEY` | API key used by `ChatOpenAI` for AI workflows | Required for AI features |
+| `LANGSMITH_TRACING` | Enables LangSmith tracing for LangChain and LangGraph runs | No |
+| `LANGSMITH_ENDPOINT` | LangSmith API endpoint | Required when tracing is enabled |
+| `LANGSMITH_API_KEY` | API key used to send traces to LangSmith | Required when tracing is enabled |
+| `LANGSMITH_PROJECT` | LangSmith project name for recorded traces | Required when tracing is enabled |
+
+`LANGSMITH_TRACING=true` enables tracing for the AI workflow. Set it to `false` when tracing is not required.
+
+Do not commit `.env`, `OPENAI_API_KEY`, or `LANGSMITH_API_KEY`. Never expose these credentials in source control, logs, or client-side code.
+
+## 🐳 Database with Docker
+
+The included Docker Compose file starts PostgreSQL 17 with the database credentials used by the project:
+
+```bash
+docker compose up -d db
+```
+
+Check the running container:
+
+```bash
+docker compose ps
+```
+
+Stop the database container:
+
+```bash
+docker compose down
+```
+
+The database data is stored in the `postgres_data` Docker volume, so it persists when the container is stopped.
+
+## 🗄️ Database and Migrations
+
+The `Note` model stores:
+
+- `user_name`
+- Unique `note_id`
+- `title`
+- `subject`
+- `content`
+- Optional saved `quiz`
+- `created_at`
+- `updated_at`
+
+Apply all available migrations from the `backend` directory:
+
+```bash
+uv run alembic upgrade head
+```
+
+Create a new migration after changing the SQLAlchemy model:
+
+```bash
+uv run alembic revision --autogenerate -m "describe your change"
+```
+
+Review autogenerated migrations before applying them. The Alembic environment reads the database URL from `DATABASE_URL`.
+
+## 🚀 Running the Backend
+
+Start the PostgreSQL container, apply migrations, and run the API from the `backend` directory:
+
+```bash
+docker compose up -d db
+uv run alembic upgrade head
+uv run uvicorn main:app --reload
+```
+
+The development server is available at:
+
+```text
+http://127.0.0.1:8000
+```
+
+FastAPI also provides interactive API documentation at:
+
+- Swagger UI: `http://127.0.0.1:8000/docs`
+- ReDoc: `http://127.0.0.1:8000/redoc`
+
+## 🔌 API Endpoints
+
+The application currently exposes the following routes without an additional URL prefix.
+
+### 👤 Users and Notes
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/get_all_names` | Return all unique usernames in the database |
+| `GET` | `/{user_name}` | Return all notes for a specific username |
+| `POST` | `/create_note` | Create a new note |
+| `PUT` | `/update_note/{note_id}` | Update a note's title, subject, or content |
+| `DELETE` | `/delete_note/{note_id}` | Delete a note |
+
+Example create-note request:
+
+```json
+{
+	"user_name": "john_doe",
+	"note_id": "note_123",
+	"title": "Introduction to Biology",
+	"subject": "Biology",
+	"content": "Study notes about cells and their functions.",
+	"quiz": null
+}
+```
+
+### 🤖 Quiz Generation
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `POST` | `/quiz_generation/{note_id}` | Run the complete AI workflow and return the result |
+| `POST` | `/quiz_generation/{note_id}/stream` | Stream workflow progress as SSE events |
+
+The completed quiz-generation response contains:
+
+```json
+{
+	"note_id": "note_123",
+	"analysis_result": "...",
+	"summary_result": "...",
+	"key_concepts": ["cells", "membranes"],
+	"generated_questions": ["What is the function of a cell membrane?"]
+}
+```
+
+## 🧠 AI and LangGraph Workflow
+
+The AI workflow is defined in `agent/workflow.py` and runs these stages in order:
+
+```text
+Analyze note
+		↓
+Generate summary
+		↓
+Extract key concepts
+		↓
+Generate quiz questions
+```
+
+The workflow uses `ChatOpenAI` with the `gpt-5-nano` model and a temperature of `0`. Its state includes the note ID, title, subject, content, analysis, summary, key concepts, and generated questions.
+
+When the streaming endpoint is used, the backend sends `workflow_update` events as each node completes, followed by a `complete` event containing the final `QuizGenerationResponse`.
+
+## 📡 Server-Sent Events (SSE)
+
+The streaming endpoint returns `text/event-stream` data:
+
+```text
+POST /quiz_generation/{note_id}/stream
+```
+
+The workflow emits updates for these nodes:
+
+- `analyze`
+- `summary`
+- `key_concepts`
+- `quiz_generation`
+
+Clients should listen for `workflow_update` events to show progress and handle the `complete` event when the final result is ready.
+
+## 🧪 Testing and Verification
+
+No automated test suite is currently included in the backend. For manual verification:
+
+1. Start PostgreSQL and apply the migrations.
+2. Start the FastAPI development server.
+3. Open `/docs` in a browser.
+4. Create a note using `POST /create_note`.
+5. Retrieve it using `GET /{user_name}`.
+6. Test update and delete operations.
+7. Run one of the quiz-generation endpoints with a valid `OPENAI_API_KEY`.
+
+## 📋 Development Notes
+
+- User identity is currently represented by `user_name`; authentication is not implemented.
+- `note_id` must be unique when creating a note.
+- Requests for a username or note ID that does not exist return an HTTP 404 response.
+- Quiz generation requires a working OpenAI API key and can take longer than regular CRUD requests.
+- The generated quiz is saved on the note after the workflow completes.
+- The current API returns quiz questions but does not implement answer validation or scoring.
+- Keep database credentials and API keys outside version control.
