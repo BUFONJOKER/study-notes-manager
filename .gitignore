@@ -140,3 +140,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+class-list.json
+pid
