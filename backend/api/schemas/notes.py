@@ -48,6 +48,9 @@ class NoteResponse(BaseModel):
         """Serialize datetime to ISO format string."""
         return value.isoformat() if isinstance(value, datetime) else value
 
+class UsageTelemetry(BaseModel):
+    execution_time_seconds: float
+    tokens: dict
 
 class QuizGenerationResponse(BaseModel):
     """Result returned after running the complete note-processing workflow."""
@@ -58,3 +61,4 @@ class QuizGenerationResponse(BaseModel):
     summary_result: str
     key_concepts: list[str]
     generated_questions: list[str]
+    telemetry: UsageTelemetry

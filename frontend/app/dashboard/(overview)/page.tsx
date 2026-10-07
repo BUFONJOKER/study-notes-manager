@@ -1,5 +1,7 @@
 "use client";
 
+import React, { useState } from "react";
+import Link from "next/link";
 import {
   FileText,
   BookOpen,
@@ -9,11 +11,63 @@ import {
   Plus,
   ChevronRight,
   ChevronDown,
+  Check,
 } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
-import ApiKeyModal from "@/app/components/ApiKeyModal";
 
+// --- Empty State Component ---
+function EmptyDashboard() {
+  return (
+    <div className="space-y-8 pb-16">
+      <div>
+        <h1 className="font-serif text-[42px] font-semibold leading-tight tracking-[-0.02em] text-[#18231f]">
+          Welcome, new student
+        </h1>
+        <p className="mt-1 text-sm text-[#51605a]">
+          Your study space is ready when you are.
+        </p>
+      </div>
+
+      <div className="mx-auto flex min-h-125 max-w-200 flex-col items-center justify-center rounded-3xl border border-[#dde4df] bg-white px-8 py-16 text-center shadow-[0_3px_14px_rgba(32,48,41,0.025)]">
+        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[#e8f1ec] text-[#1f5b45]">
+          <FileText className="h-6 w-6 stroke-[1.8]" />
+        </div>
+
+        <span className="mt-6 rounded-full bg-[#f1f3ee] px-3 py-1 text-[11px] font-medium text-[#78847f]">
+          Start here
+        </span>
+
+        <h2 className="mt-3 font-serif text-[26px] font-semibold tracking-tight text-[#18231f]">
+          Create your first study note
+        </h2>
+        <p className="mt-2 max-w-125 text-xs leading-relaxed text-[#51605a]">
+          Add lecture notes, reading summaries, or key concepts. Once saved, you can
+          instantly turn them into a practice quiz.
+        </p>
+
+        <Link
+          href="/dashboard/notes/create"
+          className="mt-6 flex items-center gap-2 rounded-xl bg-[#1f5b45] px-5 py-3 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#174b38]"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Create your first note</span>
+        </Link>
+
+        <div className="mt-8 space-y-3 text-xs text-[#51605a]">
+          <div className="flex items-center justify-center gap-2">
+            <Check className="h-3.5 w-3.5 text-[#1f5b45]" />
+            <span>Keep subjects organized</span>
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <Check className="h-3.5 w-3.5 text-[#1f5b45]" />
+            <span>Generate AI practice questions</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Active Dashboard Data Constants ---
 const STATS = [
   {
     label: "Total notes",
@@ -92,36 +146,21 @@ const BAR_CHART = [
 ];
 
 const COURSE_CARDS = [
-  {
-    code: "BIO",
-    title: "Biology",
-    notes: "4 notes",
-    bg: "bg-[#edf6f0]",
-  },
-  {
-    code: "HIS",
-    title: "History",
-    notes: "3 notes",
-    bg: "bg-[#faf4e7]",
-  },
-  {
-    code: "CHE",
-    title: "Chemistry",
-    notes: "2 notes",
-    bg: "bg-[#f5f1f8]",
-  },
-  {
-    code: "MAT",
-    title: "Mathematics",
-    notes: "2 notes",
-    bg: "bg-[#eff5f8]",
-  },
+  { code: "BIO", title: "Biology", notes: "4 notes", bg: "bg-[#edf6f0]" },
+  { code: "HIS", title: "History", notes: "3 notes", bg: "bg-[#faf4e7]" },
+  { code: "CHE", title: "Chemistry", notes: "2 notes", bg: "bg-[#f5f1f8]" },
+  { code: "MAT", title: "Mathematics", notes: "2 notes", bg: "bg-[#eff5f8]" },
 ];
 
-export default function Page() {
-  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
-  const [isApiKeyConfigured, setIsApiKeyConfigured] = useState(false);
-  const [activityRange, setActivityRange] = useState("week");
+// --- Main Page Component ---
+export default function DashboardPage() {
+  // Toggle between [] (for empty state) and RECENT_NOTES (for active dashboard)
+  const [notes] = useState<any[]>(RECENT_NOTES);
+
+  if (notes.length === 0) {
+    return <EmptyDashboard />;
+  }
+
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -139,19 +178,16 @@ export default function Page() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            className="flex items-center gap-2 rounded-xl border border-[#dde4df] bg-white px-4 py-2.5 text-xs font-semibold text-[#18231f] shadow-xs hover:bg-[#fafbf9]"
-            onClick={() => setIsApiKeyModalOpen(true)}
-          >
+          <button className="flex items-center gap-2 rounded-xl border border-[#dde4df] bg-white px-4 py-2.5 text-xs font-semibold text-[#18231f] shadow-xs hover:bg-[#fafbf9]">
             <Lock className="h-3.5 w-3.5 text-[#78847f]" />
             <span>Generate quiz</span>
           </button>
           <Link
             href="/dashboard/notes/create"
-            className="flex items-center gap-2 rounded-xl bg-[#1f5b45] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#174b38] transition-colors"
+            className="flex items-center gap-2 rounded-xl bg-[#1f5b45] px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#174b38]"
           >
             <Plus className="h-4 w-4" />
-            <span>New note</span>
+            <span>Create note</span>
           </Link>
         </div>
       </div>
@@ -186,7 +222,6 @@ export default function Page() {
 
       {/* Main Grid: Recently Updated & Activity */}
       <div className="grid grid-cols-12 gap-5">
-        {/* Recently Updated */}
         <section className="col-span-8 rounded-2xl border border-[#dde4df] bg-white shadow-xs">
           <div className="flex items-center justify-between border-b border-[#e9eeeb] px-6 py-4">
             <div>
@@ -252,25 +287,14 @@ export default function Page() {
               <h2 className="text-sm font-semibold text-[#18231f]">
                 Study activity
               </h2>
-              <p className="text-[11px] text-[#78847f]">
-                Notes updated this week
-              </p>
+              <p className="text-[11px] text-[#78847f]">Notes updated this week</p>
             </div>
-            <div className="relative">
-              <select
-                value={activityRange}
-                onChange={(event) => setActivityRange(event.target.value)}
-                aria-label="Study activity range"
-                className="appearance-none rounded-lg border border-[#dde4df] bg-white py-1 pl-2.5 pr-7 text-[11px] text-[#51605a] outline-hidden focus:border-[#1f5b45]"
-              >
-                <option value="week">This week</option>
-                <option value="month">This month</option>
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-[#78847f]" />
-            </div>
+            <button className="flex items-center gap-1 rounded-lg border border-[#dde4df] bg-white px-2.5 py-1 text-[11px] text-[#51605a]">
+              <span>This week</span>
+              <ChevronDown className="h-3 w-3 text-[#78847f]" />
+            </button>
           </div>
 
-          {/* Bar Chart Container */}
           <div className="flex h-44 items-end justify-between gap-3 px-6 pb-4 pt-6">
             {BAR_CHART.map((b, idx) => (
               <div
@@ -338,12 +362,6 @@ export default function Page() {
           ))}
         </div>
       </section>
-      <ApiKeyModal
-        isOpen={isApiKeyModalOpen}
-        onClose={() => setIsApiKeyModalOpen(false)}
-        onSuccess={() => setIsApiKeyConfigured(true)}
-        isConfigured={isApiKeyConfigured}
-      />
     </div>
   );
 }

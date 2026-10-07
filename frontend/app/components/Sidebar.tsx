@@ -51,22 +51,20 @@ export function Sidebar() {
         <nav className="mt-8 space-y-1">
           <Link
             href="/dashboard"
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
-              isDashboardActive
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${isDashboardActive
                 ? "bg-[#e2e9e3] font-semibold text-[#1f5b45]"
                 : "text-[#51605a] hover:bg-[#e2e9e3] hover:text-[#1f5b45]"
-            }`}
+              }`}
           >
             <LayoutDashboard className="h-4 w-4" />
             <span>Dashboard</span>
           </Link>
           <Link
             href="/dashboard/notes"
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
-              isNotesActive
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${isNotesActive
                 ? "bg-[#e2e9e3] font-semibold text-[#1f5b45]"
                 : "text-[#51605a] hover:bg-[#e2e9e3] hover:text-[#1f5b45]"
-            }`}
+              }`}
           >
             <FileText className="h-4 w-4" />
             <span>All notes</span>
@@ -77,11 +75,10 @@ export function Sidebar() {
 
           <Link
             href="/dashboard/quiz"
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
-              isQuizActive
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${isQuizActive
                 ? "bg-[#e2e9e3] font-semibold text-[#1f5b45]"
                 : "text-[#51605a] hover:bg-[#e2e9e3] hover:text-[#1f5b45]"
-            }`}
+              }`}
           >
             <Sparkles className="h-4 w-4" />
             <span>Quiz library</span>
@@ -131,20 +128,23 @@ export function Sidebar() {
         </div>
 
         {/* User Footer */}
-        <div className="mt-4 flex items-center gap-3 border-t border-[#dde4df] pt-3">
+        <Link
+          href="/dashboard/profile"
+          className="mt-4 flex items-center gap-3 border-t border-[#dde4df] pt-3 text-left transition-colors hover:bg-[#e2e9e3]/60 -mx-2 px-2 rounded-xl"
+        >
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#b56f53] text-xs font-bold text-white">
-            AM
+            AR
           </span>
-          <div className="min-w-0 flex-1">
+          <span className="min-w-0 flex-1">
             <strong className="block truncate text-xs font-medium text-[#18231f]">
-              Alex Morgan
+              ABDUL REHMAN JA...
             </strong>
             <small className="block truncate text-[10px] text-[#78847f]">
-              @alexm
+              @mani
             </small>
-          </div>
+          </span>
           <MoreHorizontal className="h-4 w-4 text-[#78847f]" />
-        </div>
+        </Link>
       </aside>
       <ApiKeyModal
         isOpen={isApiKeyModalOpen}
