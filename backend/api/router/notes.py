@@ -20,13 +20,26 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
     finally:
         db.close()
 
 @router.get("/get_all_names", response_model=list[str])
 async def get_all_names(db: Session = Depends(get_db)):
     """Get all unique user names from the database."""
-    user_names = db.query(Note.user_name).distinct().all()
+    try:
+        user_names = db.query(Note.user_name).distinct().all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
+
+    if not user_names:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No user names found in the database.",
+        )
+
     return [name[0] for name in user_names]
 
 
@@ -34,7 +47,10 @@ async def get_all_names(db: Session = Depends(get_db)):
 async def read_notes(user_name: str, db: Session = Depends(get_db)):
     """Check if the user exists in the database."""
 
-    user_notes = db.query(Note).filter(Note.user_name == user_name).all()
+    try:
+        user_notes = db.query(Note).filter(Note.user_name == user_name).all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
 
     if not user_notes:
         raise HTTPException(
@@ -44,7 +60,10 @@ async def read_notes(user_name: str, db: Session = Depends(get_db)):
 
     """Retrieve all notes for a specific user."""
 
-    notes = db.query(Note).filter(Note.user_name == user_name).all()
+    try:
+        notes = db.query(Note).filter(Note.user_name == user_name).all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
 
     return notes
 
@@ -55,7 +74,11 @@ async def read_notes(user_name: str, db: Session = Depends(get_db)):
 def create_note(note: NoteCreate, db: Session = Depends(get_db)):
     """Check if a note with the same note_id already exists."""
 
-    existing_note = db.query(Note).filter(Note.note_id == note.note_id).first()
+    try:
+        existing_note = db.query(Note).filter(Note.note_id == note.note_id).first()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
+
     if existing_note:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -73,9 +96,13 @@ def create_note(note: NoteCreate, db: Session = Depends(get_db)):
         updated_at=datetime.now(),
     )
 
-    db.add(db_note)
-    db.commit()
-    db.refresh(db_note)
+    try:
+        db.add(db_note)
+        db.commit()
+        db.refresh(db_note)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
 
     return db_note
 
@@ -91,8 +118,12 @@ def delete_note(note_id: str, db: Session = Depends(get_db)):
             detail=f"Note with note_id '{note_id}' not found.",
         )
 
-    db.delete(db_note)
-    db.commit()
+    try:
+        db.delete(db_note)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
 
 
 @router.put("/update_note/{note_id}", response_model=NoteResponse)
@@ -111,8 +142,12 @@ def update_note(note_id: str, note: NoteUpdate, db: Session = Depends(get_db)):
     db_note.content = note.content
     db_note.updated_at = datetime.now()
 
-    db.commit()
-    db.refresh(db_note)
+    try:
+        db.commit()
+        db.refresh(db_note)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
 
     return db_note
 
@@ -128,40 +163,48 @@ def _initial_agent_state(db_note: Note) -> AgentState:
 
 def _save_quiz(db: Session, db_note: Note, result: dict) -> None:
     db_note.quiz = json.dumps(result["generated_questions"])
-    db_note.updated_at = datetime.now()
-    db.commit()
+    try:
+        db_note.updated_at = datetime.now()
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
 
 
-@router.post("/quiz_generation/{note_id}", response_model=QuizGenerationResponse)
+# @router.post("/quiz_generation/{note_id}", response_model=QuizGenerationResponse)
+# async def quiz_generation(note_id: str, db: Session = Depends(get_db)):
+#     """Run the complete analysis workflow and save the generated quiz."""
+#     db_note = db.query(Note).filter(Note.note_id == note_id).first()
+
+#     if not db_note:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Note with note_id '{note_id}' not found.",
+#         )
+
+#     initial_state = _initial_agent_state(db_note)
+#     workflow = build_workflow(load_llm()).compile()
+#     result = await workflow.ainvoke(initial_state.model_dump())
+
+#     _save_quiz(db, db_note, result)
+
+#     return QuizGenerationResponse(
+#         note_id=db_note.note_id,
+#         analysis_result=result["analysis_result"],
+#         summary_result=result["summary_result"],
+#         key_concepts=result["key_concepts"],
+#         generated_questions=result["generated_questions"],
+#     )
+
+
+@router.post("/quiz_generation/{note_id}")
 async def quiz_generation(note_id: str, db: Session = Depends(get_db)):
-    """Run the complete analysis workflow and save the generated quiz."""
-    db_note = db.query(Note).filter(Note.note_id == note_id).first()
-
-    if not db_note:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Note with note_id '{note_id}' not found.",
-        )
-
-    initial_state = _initial_agent_state(db_note)
-    workflow = build_workflow(load_llm()).compile()
-    result = await workflow.ainvoke(initial_state.model_dump())
-
-    _save_quiz(db, db_note, result)
-
-    return QuizGenerationResponse(
-        note_id=db_note.note_id,
-        analysis_result=result["analysis_result"],
-        summary_result=result["summary_result"],
-        key_concepts=result["key_concepts"],
-        generated_questions=result["generated_questions"],
-    )
-
-
-@router.post("/quiz_generation/{note_id}/stream")
-async def quiz_generation_stream(note_id: str, db: Session = Depends(get_db)):
     """Run the workflow and stream each completed node as server-sent events."""
-    db_note = db.query(Note).filter(Note.note_id == note_id).first()
+
+    try:
+        db_note = db.query(Note).filter(Note.note_id == note_id).first()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
 
     if not db_note:
         raise HTTPException(
