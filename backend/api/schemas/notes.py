@@ -5,7 +5,7 @@ from datetime import datetime
 class NoteCreate(BaseModel):
     """Schema for creating a new note."""
 
-    user_name: str = Field(..., example="john_doe")
+    user_id: int = Field(..., example=1)
     note_id: str = Field(..., example="note_123")
     title: str = Field(..., example="My Note Title")
     subject: str = Field(..., example="My Note Subject")
@@ -29,7 +29,7 @@ class NoteUpdate(BaseModel):
 class NoteResponse(BaseModel):
     """Schema for returning note data in responses."""
 
-    user_name: str = Field(..., example="john_doe")
+    user_id: int = Field(..., example=1)
     note_id: str = Field(..., example="note_123")
     title: str = Field(..., example="My Note Title")
     subject: str = Field(..., example="My Note Subject")
@@ -52,6 +52,7 @@ class NoteResponse(BaseModel):
 class QuizGenerationResponse(BaseModel):
     """Result returned after running the complete note-processing workflow."""
 
+    user_id: int
     note_id: str
     analysis_result: str
     summary_result: str

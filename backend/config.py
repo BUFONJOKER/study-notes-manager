@@ -1,16 +1,19 @@
-"""Configuration module for loading environment variables from .env file."""
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from functools import lru_cache
 
-import os
-from pathlib import Path
-from dotenv import load_dotenv
+class Settings(BaseSettings):
 
-# Load environment variables from .env file
-env_path = Path(__file__).parent / ".env"
-load_dotenv(dotenv_path=env_path)
+   DATABASE_URL: str
+   OPENAI_API_KEY: str | None = None
 
-# API Keys
-DATABASE_URL = os.getenv("DATABASE_URL")
+   LANGSMITH_TRACING: bool
+   LANGSMITH_ENDPOINT: str
+   LANGSMITH_API_KEY: str
+   LANGSMITH_PROJECT: str
+   SECRET_KEY: str
 
-# Validate required API keys
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL is not set in .env file")
+   model_config = SettingsConfigDict(env_file=".env")
+
+@lru_cache()
+def get_settings() -> Settings:
+    return Settings()
