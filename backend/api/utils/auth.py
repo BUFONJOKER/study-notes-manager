@@ -14,7 +14,7 @@ from api.utils.context import openai_key_context
 from fastapi import Depends
 
 from config import get_settings, Settings
-from utils.context import openai_key_context
+
 
 settings = get_settings()
 
@@ -66,8 +66,8 @@ def get_openai_key(
         return key
 
     # Priority 2: Fall back to .env key
-    if settings.openai_api_key:
-        return settings.openai_api_key
+    if settings.OPENAI_API_KEY:
+        return settings.OPENAI_API_KEY
 
     # Neither found
     raise HTTPException(

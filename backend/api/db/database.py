@@ -1,11 +1,11 @@
-import os
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from config import get_settings
+from fastapi import HTTPException
+from sqlalchemy.exc import SQLAlchemyError
 
-load_dotenv()
-
-DATABASE_URL = os.getenv("DATABASE_URL")
+settings = get_settings()
+DATABASE_URL = settings.DATABASE_URL
 
 class Base(DeclarativeBase):
     pass
@@ -21,3 +21,15 @@ engine = create_engine(
 )
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)
+
+
+def get_db():
+    """Provide a database session and close it after the request."""
+    db = SessionLocal()
+    try:
+        yield db
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
+    finally:
+        db.close()

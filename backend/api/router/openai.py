@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Annotated
 
-from schemas.openai import OpenAIKeyRequest, OpenAIKeyResponse
-from utils.context import openai_key_context
-from utils.auth import get_current_user, get_openai_key
+from api.schemas.openai import OpenAIKeyRequest, OpenAIKeyResponse
+from api.utils.context import openai_key_context
+from api.utils.auth import get_current_user, get_openai_key
 from api.db.models import User
 
 router = APIRouter(prefix="/openai", tags=["openai"])

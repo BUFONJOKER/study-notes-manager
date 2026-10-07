@@ -11,7 +11,7 @@ class NoteCreate(BaseModel):
     subject: str = Field(..., example="My Note Subject")
     content: str = Field(..., example="This is the content of my note.")
     quiz: str | None = Field(
-        default=None, example="This is a quiz related to the note."
+        default=None, example="This is a quiz related to the note and can be generated later."
     )
 
 

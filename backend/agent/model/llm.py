@@ -1,8 +1,6 @@
 from langchain_openai import ChatOpenAI
 from api.utils.context import openai_key_context
 
-
-
 def load_llm(api_key: str | None = None)-> ChatOpenAI:
     """
     Load the LLM with an API key in priority order:
