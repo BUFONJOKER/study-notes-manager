@@ -1,0 +1,1063 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Study Notes Manager",
+        "description": "API for managing study notes.",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/users/login": {
+            "post": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Login",
+                "description": "Authenticate user and return access token which is valid for 30 minutes and which can be used to access protected endpoints.",
+                "operationId": "login_users_login_post",
+                "requestBody": {
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_login_users_login_post"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get All Users",
+                "description": "Get all users data protected",
+                "operationId": "get_all_users_users__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/UserResponse"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get All Users Users  Get"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Create User",
+                "description": "Create a new user. This endpoint is open to anyone.",
+                "operationId": "create_user_users__post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserCreate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user_id}": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get User",
+                "description": "Get user Notes data protected.",
+                "operationId": "get_user_users__user_id__get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "User Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update User",
+                "description": "Update user data",
+                "operationId": "update_user_users__user_id__put",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "User Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserUpdate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete User",
+                "description": "Delete user data",
+                "operationId": "delete_user_users__user_id__delete",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "User Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful Response"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/notes/get_all_names": {
+            "get": {
+                "tags": [
+                    "notes"
+                ],
+                "summary": "Get All Names",
+                "description": "Return all unique user names that have notes.",
+                "operationId": "get_all_names_notes_get_all_names_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get All Names Notes Get All Names Get"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/notes/{user_id}": {
+            "get": {
+                "tags": [
+                    "notes"
+                ],
+                "summary": "Read Notes",
+                "description": "Return all notes belonging to a user logged in. This endpoint is protected and requires authentication.",
+                "operationId": "read_notes_notes__user_id__get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "User Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/NoteResponse"
+                                    },
+                                    "title": "Response Read Notes Notes  User Id  Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/notes/create_note": {
+            "post": {
+                "tags": [
+                    "notes"
+                ],
+                "summary": "Create Note",
+                "description": "Create and save a new note. This endpoint is protected and requires authentication.",
+                "operationId": "create_note_notes_create_note_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/NoteCreate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NoteResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/notes/delete_note/{note_id}": {
+            "delete": {
+                "tags": [
+                    "notes"
+                ],
+                "summary": "Delete Note",
+                "description": "Delete a note by its ID. This endpoint is protected and requires authentication.",
+                "operationId": "delete_note_notes_delete_note__note_id__delete",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "note_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Note Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful Response"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/notes/update_note/{note_id}": {
+            "put": {
+                "tags": [
+                    "notes"
+                ],
+                "summary": "Update Note",
+                "description": "Update a note's title, subject, and content. This endpoint is protected and requires authentication.",
+                "operationId": "update_note_notes_update_note__note_id__put",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "note_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Note Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/NoteUpdate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NoteResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/notes/quiz_generation/{note_id}": {
+            "post": {
+                "tags": [
+                    "notes"
+                ],
+                "summary": "Quiz Generation",
+                "description": "Generate a quiz and stream workflow updates. Protected endpoint.",
+                "operationId": "quiz_generation_notes_quiz_generation__note_id__post",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "note_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Note Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "text/event-stream": {
+                                "itemSchema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        },
+                                        "event": {
+                                            "type": "string"
+                                        },
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "retry": {
+                                            "type": "integer",
+                                            "minimum": 0
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/set-key": {
+            "post": {
+                "tags": [
+                    "openai"
+                ],
+                "summary": "Set Openai Key",
+                "description": "Set the OpenAI API key for this request session only. Never stored in DB.",
+                "operationId": "set_openai_key_openai_set_key_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OpenAIKeyRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OpenAIKeyResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/openai/validate-key": {
+            "get": {
+                "tags": [
+                    "openai"
+                ],
+                "summary": "Validate Key",
+                "description": "Check if an OpenAI API key is currently set in this session.",
+                "operationId": "validate_key_openai_validate_key_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OpenAIKeyResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Body_login_users_login_post": {
+                "properties": {
+                    "grant_type": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "pattern": "^password$"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Grant Type"
+                    },
+                    "username": {
+                        "type": "string",
+                        "title": "Username"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "title": "Password"
+                    },
+                    "scope": {
+                        "type": "string",
+                        "title": "Scope",
+                        "default": ""
+                    },
+                    "client_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Client Id"
+                    },
+                    "client_secret": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "format": "password",
+                        "title": "Client Secret"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "username",
+                    "password"
+                ],
+                "title": "Body_login_users_login_post"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "NoteCreate": {
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "title": "User Id",
+                        "description": "ID of the user creating the note.",
+                        "example": 1
+                    },
+                    "note_id": {
+                        "type": "string",
+                        "title": "Note Id",
+                        "description": "Unique identifier for the note.",
+                        "example": "note_123"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title",
+                        "description": "Title of the note.",
+                        "example": "My Note Title"
+                    },
+                    "subject": {
+                        "type": "string",
+                        "title": "Subject",
+                        "description": "Subject of the note.",
+                        "example": "My Note Subject"
+                    },
+                    "content": {
+                        "type": "string",
+                        "title": "Content",
+                        "description": "Content of the note.",
+                        "example": "This is the content of my note."
+                    },
+                    "quiz": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Quiz",
+                        "description": "Quiz generated related to the note. which will be generated later in the workflow and can be updated later.",
+                        "example": [
+                            "What is concept1?",
+                            "Explain concept2.",
+                            "Describe concept3."
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "note_id",
+                    "title",
+                    "subject",
+                    "content"
+                ],
+                "title": "NoteCreate",
+                "description": "Schema for creating a new note."
+            },
+            "NoteResponse": {
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "title": "User Id",
+                        "description": "ID of the user who created the note.",
+                        "example": 1
+                    },
+                    "note_id": {
+                        "type": "string",
+                        "title": "Note Id",
+                        "description": "Unique identifier for the note.",
+                        "example": "note_123"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title",
+                        "description": "Title of the note.",
+                        "example": "My Note Title"
+                    },
+                    "subject": {
+                        "type": "string",
+                        "title": "Subject",
+                        "description": "Subject of the note.",
+                        "example": "My Note Subject"
+                    },
+                    "content": {
+                        "type": "string",
+                        "title": "Content",
+                        "description": "Content of the note.",
+                        "example": "This is the content of my note."
+                    },
+                    "quiz": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Quiz",
+                        "description": "Quiz generated related to the note. which will be generated later in the workflow and can be updated later.",
+                        "example": [
+                            "What is concept1?",
+                            "Explain concept2.",
+                            "Describe concept3."
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "title": "Created At",
+                        "example": "2023-01-01T12:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "title": "Updated At",
+                        "example": "2023-01-02T12:00:00Z"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "note_id",
+                    "title",
+                    "subject",
+                    "content",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "NoteResponse",
+                "description": "Schema for returning note data in responses."
+            },
+            "NoteUpdate": {
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "title": "Title",
+                        "description": "Title of the note.",
+                        "example": "Updated Note Title"
+                    },
+                    "subject": {
+                        "type": "string",
+                        "title": "Subject",
+                        "description": "Subject of the note.",
+                        "example": "Updated Note Subject"
+                    },
+                    "content": {
+                        "type": "string",
+                        "title": "Content",
+                        "description": "Content of the note.",
+                        "example": "This is the updated content of my note."
+                    },
+                    "quiz": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Quiz",
+                        "description": "Quiz generated related to the note. which will be generated later in the workflow and can be updated later.",
+                        "example": [
+                            "What is concept1?",
+                            "Explain concept2.",
+                            "Describe concept3."
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "title",
+                    "subject",
+                    "content"
+                ],
+                "title": "NoteUpdate",
+                "description": "Schema for updating an existing note."
+            },
+            "OpenAIKeyRequest": {
+                "properties": {
+                    "api_key": {
+                        "type": "string",
+                        "title": "Api Key",
+                        "example": "sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "api_key"
+                ],
+                "title": "OpenAIKeyRequest"
+            },
+            "OpenAIKeyResponse": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "example": "OpenAI API key stored successfully."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "title": "OpenAIKeyResponse"
+            },
+            "Token": {
+                "properties": {
+                    "access_token": {
+                        "type": "string",
+                        "title": "Access Token",
+                        "description": "JWT access token for authentication.",
+                        "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "token_type": {
+                        "type": "string",
+                        "title": "Token Type",
+                        "description": "Type of the token.",
+                        "example": "bearer"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "access_token",
+                    "token_type"
+                ],
+                "title": "Token"
+            },
+            "UserCreate": {
+                "properties": {
+                    "user_name": {
+                        "type": "string",
+                        "title": "User Name",
+                        "description": "Name of the user.",
+                        "example": "john_doe"
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 8,
+                        "format": "password",
+                        "title": "Password",
+                        "description": "Password must be at least 8 characters long",
+                        "writeOnly": true,
+                        "example": "secure_password"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "user_name",
+                    "password"
+                ],
+                "title": "UserCreate"
+            },
+            "UserResponse": {
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "title": "User Id",
+                        "description": "ID of the user which will be generated automatically when the user is created.",
+                        "example": 1
+                    },
+                    "user_name": {
+                        "type": "string",
+                        "title": "User Name",
+                        "description": "Name of the user.",
+                        "example": "john_doe"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "user_name"
+                ],
+                "title": "UserResponse"
+            },
+            "UserUpdate": {
+                "properties": {
+                    "user_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "User Name",
+                        "description": "New name of the user.",
+                        "example": "new_username"
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 8,
+                        "format": "password",
+                        "title": "Password",
+                        "description": "Password must be at least 8 characters long",
+                        "writeOnly": true,
+                        "example": "secure_password"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "password"
+                ],
+                "title": "UserUpdate"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    },
+                    "input": {
+                        "title": "Input"
+                    },
+                    "ctx": {
+                        "type": "object",
+                        "title": "Context"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        },
+        "securitySchemes": {
+            "OAuth2PasswordBearer": {
+                "type": "oauth2",
+                "flows": {
+                    "password": {
+                        "scopes": {},
+                        "tokenUrl": "users/login"
+                    }
+                }
+            }
+        }
+    }
+}
