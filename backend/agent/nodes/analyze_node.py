@@ -1,10 +1,10 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-from agent.schemas.main import AgentState
-from agent.model.llm import load_llm
+from agent.schemas.agent_state import AgentState
 
 
-async def analyze(state: AgentState, llm=None) -> dict:
+
+async def analyze(state: AgentState, llm) -> dict:
     """
     Analyze the study notes and generate a comprehensive analysis report.
 
@@ -15,10 +15,6 @@ async def analyze(state: AgentState, llm=None) -> dict:
     Returns:
         Dictionary containing the analysis result.
     """
-    if llm is None:
-        model = load_llm()
-    else:
-        model = llm
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -46,6 +42,6 @@ async def analyze(state: AgentState, llm=None) -> dict:
     )
 
     # Invoke model and return response
-    response = await model.ainvoke(formatted_prompt)
+    response = await llm.ainvoke(formatted_prompt)
 
     return {"analysis_result": response.content}

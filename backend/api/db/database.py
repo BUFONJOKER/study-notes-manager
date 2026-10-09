@@ -1,8 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.exc import SQLAlchemyError
+
 from config import get_settings
 from fastapi import HTTPException
-from sqlalchemy.exc import SQLAlchemyError
 
 settings = get_settings()
 DATABASE_URL = settings.DATABASE_URL

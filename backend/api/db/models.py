@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, func
-from api.db.database import Base
 from sqlalchemy.orm import Mapped, mapped_column
+
+from api.db.database import Base
 import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 

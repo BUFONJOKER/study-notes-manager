@@ -1,10 +1,11 @@
 from langgraph.graph import START, END, StateGraph
-from agent.schemas.main import AgentState
-from agent.model.llm import load_llm
+
+from agent.schemas.agent_state import AgentState
 from agent.nodes.key_concepts_node import key_concepts
 from agent.nodes.summary_node import summary
 from agent.nodes.analyze_node import analyze
 from agent.nodes.quiz_generation_node import quiz_generation
+
 from functools import partial
 
 
@@ -31,4 +32,4 @@ def build_workflow(llm):
     graph.add_edge('key_concepts', 'quiz_generation')
     graph.add_edge('quiz_generation', END)
 
-    return graph
+    return graph.compile()

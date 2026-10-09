@@ -2,8 +2,10 @@
 
 import json, time
 from collections.abc import AsyncIterator
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.sse import EventSourceResponse, ServerSentEvent
+
 from typing import Annotated
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
@@ -14,18 +16,18 @@ from api.schemas.notes import (
     NoteUpdate,
     QuizGenerationResponse,
 )
-from agent.schemas.main import AgentState
 from api.db.database import get_db
 from api.db.models import Note, User
 from api.db.database import SessionLocal
 from api.utils.auth import get_current_user, get_openai_key
 from api.utils.context import openai_key_context
+from api.utils.state import models
 
+from agent.schemas.agent_state import AgentState
 from agent.model.llm import load_llm
 from agent.workflow import build_workflow
 
 from config import get_settings, Settings
-from api.utils.state import models
 from langchain_core.callbacks import get_usage_metadata_callback
 
 router = APIRouter(prefix="/notes", tags=["notes"])
@@ -242,7 +244,7 @@ async def quiz_generation(
 
     initial_state = _initial_agent_state(db_note)
     llm = models.get("llm") if openai_key_context.get() is None else load_llm(api_key)
-    workflow = build_workflow(llm).compile()
+    workflow = build_workflow(llm)
 
     result = initial_state.model_dump()
     start_time = time.perf_counter()

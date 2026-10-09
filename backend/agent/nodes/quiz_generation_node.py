@@ -1,5 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate
-from agent.schemas.main import AgentState
+from backend.agent.schemas.agent_state import AgentState
 from agent.model.llm import load_llm
 from pydantic import BaseModel, Field
 
