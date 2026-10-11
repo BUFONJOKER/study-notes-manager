@@ -37,7 +37,7 @@ export default function Page() {
   };
 
   return (
-    <div className="mx-auto max-w-[970px] pb-16 pt-2">
+    <div className="mx-auto max-w-242.5 pb-16 pt-2">
       {/* Page Header */}
       <div className="mb-7">
         <h1 className="font-serif text-[38px] font-semibold leading-tight tracking-[-0.02em] text-[#18231f]">
@@ -220,7 +220,7 @@ export default function Page() {
         </section>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between bg-[#fafbf9] px-[30px] py-4">
+        <div className="flex items-center justify-between bg-[#fafbf9] px-7.5 py-4">
           <span className="text-[10px] text-[#78847f]">
             Your note is private to your account.
           </span>
