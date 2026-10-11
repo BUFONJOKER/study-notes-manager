@@ -5,11 +5,12 @@ Study Notes Manager is an application for creating, organizing, and studying not
 ## 📊 Project Status
 
 - **Backend:** 🟡 Almost complete
-- **Frontend:** 🔴 Not started yet
+- **Frontend:** 🟡 In Progress
 
 ## 🧩 Main Parts
 
 - `backend/` - ⚙️ FastAPI backend, database models, and AI workflow
+- `frontend/` - ⚙️ Next.Js frontend, UI components.
 - `docs/` - 📝 Project documentation and UI design files
 
 ## ⚙️ Backend Development
@@ -53,7 +54,8 @@ The generated quiz is saved with the note in the database.
 The frontend uses Next.Js App router with Tailwind CSS with pnpm.
 
 ```bash
-pnpm create next-app@latest frontend --yes
 cd frontend
+pnpm install
+pnpm update
 pnpm dev
 ```
