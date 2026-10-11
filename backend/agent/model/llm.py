@@ -24,5 +24,5 @@ def load_llm(api_key: str | None = None)-> ChatOpenAI:
     return ChatOpenAI(
         model="gpt-5-nano",
         temperature=0,
-        api_key=api_key,
+        api_key=resolved_key,
     )
