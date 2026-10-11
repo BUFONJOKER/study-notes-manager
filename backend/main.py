@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from api.router.notes import router as notes_router
 from api.router.users import router as users_router
 from api.router.openai import router as openai_router
@@ -22,7 +23,21 @@ async def lifespan(app: FastAPI):
 
 settings = get_settings()
 
+
 app = FastAPI(title="Study Notes Manager", description="API for managing study notes.", version="1.0.0", lifespan=lifespan)
+
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Add prefix here instead of in include_router
 app.include_router(users_router)
