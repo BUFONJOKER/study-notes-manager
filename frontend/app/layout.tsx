@@ -24,10 +24,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${newsreader.variable}`}>
-      <body className="bg-[#f6f7f3] font-sans text-[#18231f] antialiased">
+    <html lang="en">
+      <body >
         {children}
       </body>
     </html>
   );
 }
+
+// className={`${dmSans.variable} ${newsreader.variable}`}
+// className="bg-[#f6f7f3] font-sans text-[#18231f] antialiased"
