@@ -48,6 +48,12 @@ The AI generates:
 
 The generated quiz is saved with the note in the database.
 
-## 🎨 Frontend
+## ⚙️ Frontend Development
 
-Frontend development is planned but has not started yet.
+The frontend uses Next.Js App router with Tailwind CSS with pnpm.
+
+```bash
+pnpm create next-app@latest frontend --yes
+cd frontend
+pnpm dev
+```
