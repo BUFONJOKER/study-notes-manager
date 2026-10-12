@@ -143,3 +143,6 @@ next-env.d.ts
 
 class-list.json
 pid
+
+# also includes docs/ui folder
+docs/ui/**

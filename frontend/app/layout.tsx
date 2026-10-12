@@ -1,36 +1,29 @@
-import type { Metadata } from "next";
-import { DM_Sans, Newsreader } from "next/font/google";
-import "@/app/globals.css";
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-dm-sans",
-});
-
-const newsreader = Newsreader({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  variable: "--font-newsreader",
-});
+import type { Metadata, Viewport } from "next";
+import type { ReactNode } from "react";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Noteflow - Study Workspace",
-  description: "AI-powered study notes and quiz generator",
+  title: "Noteflow — Study workspace",
+  description:
+    "Manage and organize study notes while generating AI-powered quizzes to enhance learning and retention.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#f6f7f3",
+};
+
+export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en">
-      <body >
+    <html lang="en" className="bg-[#f6f7f3]">
+      <body className="m-0 min-h-screen min-w-80 bg-[#f6f7f3] font-['DM_Sans'] text-[#18231f] antialiased selection:bg-[#dcefe5] selection:text-[#1f5b45] max-[620px]:pb-[69px]">
         {children}
       </body>
     </html>
   );
 }
-
-// className={`${dmSans.variable} ${newsreader.variable}`}
-// className="bg-[#f6f7f3] font-sans text-[#18231f] antialiased"

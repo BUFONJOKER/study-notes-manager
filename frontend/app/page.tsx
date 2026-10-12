@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import NoteflowApp from "@/features/dashboard";
 
-export default function Home() {
-  redirect("/login");
+export default function Page() {
+  return <NoteflowApp />;
 }
