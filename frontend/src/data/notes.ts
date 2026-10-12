@@ -1,0 +1,50 @@
+import type { Note } from "@/types";
+
+export const initialNotes: Note[] = [
+  {
+    id: "BIO-204-07",
+    title: "Cellular Respiration & Energy",
+    subject: "Biology",
+    updated: "Today, 10:24 AM",
+    created: "Sep 18, 2024",
+    tone: "mint",
+    hasQuiz: true,
+    content: "Cellular respiration is the process cells use to convert glucose into usable energy in the form of ATP.\n\nGlycolysis\nGlycolysis occurs in the cytoplasm and does not require oxygen. One glucose molecule is split into two pyruvate molecules, producing a net gain of 2 ATP and 2 NADH.\n\nThe Citric Acid Cycle\nIn the mitochondrial matrix, acetyl-CoA enters a cycle of reactions that releases carbon dioxide and transfers energy to NADH and FADH₂.\n\nOxidative Phosphorylation\nThe electron transport chain creates a proton gradient across the inner mitochondrial membrane. ATP synthase uses this gradient to produce approximately 26–28 ATP. Oxygen acts as the final electron acceptor, combining with electrons and hydrogen ions to form water.",
+  },
+  {
+    id: "HIST-112-03",
+    title: "The Industrial Revolution",
+    subject: "History",
+    updated: "Yesterday, 4:18 PM",
+    created: "Sep 14, 2024",
+    tone: "amber",
+    content: "The Industrial Revolution marked the transition to new manufacturing processes in Europe and the United States.",
+  },
+  {
+    id: "CHEM-301-12",
+    title: "Organic Chemistry: Functional Groups",
+    subject: "Chemistry",
+    updated: "Sep 20, 2024",
+    created: "Sep 10, 2024",
+    tone: "lavender",
+  content: "Functional groups are specific groups of atoms within molecules that determine characteristic chemical reactions.",
+  },
+  {
+    id: "MATH-220-08",
+    title: "Integration Techniques",
+    subject: "Mathematics",
+    updated: "Sep 18, 2024",
+    created: "Sep 8, 2024",
+    tone: "blue",
+    content: "Integration by parts, trigonometric substitution, and partial fractions are key methods for finding antiderivatives.",
+  },
+  {
+    id: "PSY-101-04",
+    title: "Memory & Cognitive Processing",
+    subject: "Psychology",
+    updated: "Sep 16, 2024",
+    created: "Sep 2, 2024",
+    tone: "rose",
+    content: "Memory involves encoding, storage, and retrieval of information.",
+  },
+];
