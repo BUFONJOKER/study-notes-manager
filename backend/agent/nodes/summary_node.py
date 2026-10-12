@@ -1,49 +1,50 @@
+
 from langchain_core.prompts import ChatPromptTemplate
 
 from agent.schemas.agent_state import AgentState
-from agent.model.llm import load_llm
+from agent.schemas.summary import SummaryOutput
 
 
-async def summary(state: AgentState, llm=None) -> dict:
-    """
-    Generate a concise summary based on the analysis result.
+async def summary(state: AgentState, llm) -> dict:
+    """Generate a concise summary from the analysis."""
 
-    Args:
-        state: Current agent state.
-        llm: LLM instance injected by the workflow. If None, loads a default LLM.
-
-    Returns:
-        Dictionary containing the summary result.
-    """
-    if llm is None:
-        model = load_llm()
-    else:
-        model = llm
+    if state.analysis_result is None:
+        raise ValueError("Analysis result is required for summarization.")
 
     prompt = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
-                "You are an expert summarizer. Create a concise 2-3 paragraph summary that:\n"
-                "1. Captures the main theme and purpose\n"
-                "2. Highlights the 3-5 most critical points\n"
-                "3. Uses clear, accessible language\n"
-                "4. Maintains key technical terms where necessary\n"
-                "5. Is structured for easy reading and retention\n\n"
-                "Keep it under 250 words.",
+                """
+                You are an expert summarizer.
+
+                Summarize the provided analysis in 2-3 paragraphs,
+                using fewer than 250 words.
+
+                Requirements:
+                - Capture the main theme and purpose.
+                - Highlight the three to five most important points.
+                - Use clear, accessible language.
+                - Preserve essential technical terminology.
+                - Do not introduce unsupported information.
+                - Avoid repetition and unnecessary details.
+                """,
             ),
-            ("human", "Analysis to summarize:\n\n{analysis_result}"),
+            (
+                "human",
+                "Analysis to summarize:\n\n{analysis_result}",
+            ),
         ]
     )
 
-    # Format the prompt using state attributes
-    formatted_prompt = prompt.invoke(
+    structured_llm = llm.with_structured_output(SummaryOutput)
+
+    result = await (prompt | structured_llm).ainvoke(
         {
-            "analysis_result": state.analysis_result,
+            "analysis_result": state.analysis_result.model_dump_json(
+                indent=2
+            )
         }
     )
 
-    # Invoke model and return response
-    response = await model.ainvoke(formatted_prompt)
-
-    return {"summary_result": response.content}
+    return {"summary_result": result.summary_result}

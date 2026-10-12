@@ -24,6 +24,7 @@ const SUBJECTS = [
 export function Sidebar() {
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [isApiKeyConfigured, setIsApiKeyConfigured] = useState(false);
+  const [activeApiKey, setActiveApiKey] = useState("");
   const pathname = usePathname();
   const isDashboardActive = pathname === "/dashboard";
   const isNotesActive = pathname.startsWith("/dashboard/notes");
@@ -32,7 +33,6 @@ export function Sidebar() {
   return (
     <>
       <aside className="fixed inset-y-0 left-0 z-30 flex w-65 flex-col border-r border-[#dde4df] bg-[#f1f3ee] p-5">
-        {/* Brand Header */}
         <div className="flex items-center gap-3 px-2">
           <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#1f5b45] text-white">
             <BookOpen className="h-5 w-5" />
@@ -47,24 +47,25 @@ export function Sidebar() {
           </div>
         </div>
 
-        {/* Main Nav */}
         <nav className="mt-8 space-y-1">
           <Link
             href="/dashboard"
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${isDashboardActive
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+              isDashboardActive
                 ? "bg-[#e2e9e3] font-semibold text-[#1f5b45]"
                 : "text-[#51605a] hover:bg-[#e2e9e3] hover:text-[#1f5b45]"
-              }`}
+            }`}
           >
             <LayoutDashboard className="h-4 w-4" />
             <span>Dashboard</span>
           </Link>
           <Link
             href="/dashboard/notes"
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${isNotesActive
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+              isNotesActive
                 ? "bg-[#e2e9e3] font-semibold text-[#1f5b45]"
                 : "text-[#51605a] hover:bg-[#e2e9e3] hover:text-[#1f5b45]"
-              }`}
+            }`}
           >
             <FileText className="h-4 w-4" />
             <span>All notes</span>
@@ -75,17 +76,17 @@ export function Sidebar() {
 
           <Link
             href="/dashboard/quiz"
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${isQuizActive
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+              isQuizActive
                 ? "bg-[#e2e9e3] font-semibold text-[#1f5b45]"
                 : "text-[#51605a] hover:bg-[#e2e9e3] hover:text-[#1f5b45]"
-              }`}
+            }`}
           >
             <Sparkles className="h-4 w-4" />
             <span>Quiz library</span>
           </Link>
         </nav>
 
-        {/* Subjects */}
         <div className="mt-8 px-2">
           <span className="block text-[10px] font-bold uppercase tracking-wider text-[#78847f]">
             Subjects
@@ -98,15 +99,12 @@ export function Sidebar() {
               >
                 <span className={`h-2 w-2 rounded-full ${s.dot}`} />
                 <span>{s.name}</span>
-                <span className="ml-auto text-[11px] text-[#78847f]">
-                  {s.count}
-                </span>
+                <span className="ml-auto text-[11px] text-[#78847f]">{s.count}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Connect API Card */}
         <div className="mt-auto rounded-2xl border border-[#e1d8c6] bg-[#faf6ed] p-4">
           <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#dcefe5] text-[#1f5b45]">
             <KeyRound className="h-4 w-4" />
@@ -115,19 +113,18 @@ export function Sidebar() {
             Connect OpenAI
           </strong>
           <p className="mt-1 text-[11px] leading-relaxed text-[#78847f]">
-            Add an API key to generate quizzes.
+            Add your API key for this session only.
           </p>
           <button
             type="button"
             onClick={() => setIsApiKeyModalOpen(true)}
             className="mt-3 flex items-center gap-1 text-[11px] font-bold text-[#1f5b45] hover:underline"
           >
-            <span>Set up API key</span>
+            <span>{isApiKeyConfigured ? "Manage API key" : "Set up API key"}</span>
             <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
 
-        {/* User Footer */}
         <Link
           href="/dashboard/profile"
           className="mt-4 flex items-center gap-3 border-t border-[#dde4df] pt-3 text-left transition-colors hover:bg-[#e2e9e3]/60 -mx-2 px-2 rounded-xl"
@@ -139,9 +136,7 @@ export function Sidebar() {
             <strong className="block truncate text-xs font-medium text-[#18231f]">
               ABDUL REHMAN JA...
             </strong>
-            <small className="block truncate text-[10px] text-[#78847f]">
-              @mani
-            </small>
+            <small className="block truncate text-[10px] text-[#78847f]">@mani</small>
           </span>
           <MoreHorizontal className="h-4 w-4 text-[#78847f]" />
         </Link>
@@ -149,8 +144,16 @@ export function Sidebar() {
       <ApiKeyModal
         isOpen={isApiKeyModalOpen}
         onClose={() => setIsApiKeyModalOpen(false)}
-        onSuccess={() => setIsApiKeyConfigured(true)}
+        onSuccess={(key) => {
+          setIsApiKeyConfigured(Boolean(key));
+          setActiveApiKey(key);
+        }}
+        onClear={() => {
+          setIsApiKeyConfigured(false);
+          setActiveApiKey("");
+        }}
         isConfigured={isApiKeyConfigured}
+        currentKey={activeApiKey}
       />
     </>
   );

@@ -19,9 +19,7 @@ from api.schemas.notes import (
 from api.db.database import get_db
 from api.db.models import Note, User
 from api.db.database import SessionLocal
-from api.utils.auth import get_current_user, get_openai_key
-from api.utils.context import openai_key_context
-from api.utils.state import models
+from api.utils.auth import get_current_user, OpenAIKeyDep
 
 from agent.schemas.agent_state import AgentState
 from agent.model.llm import load_llm
@@ -37,7 +35,6 @@ GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION = 0.005
 GPT_5_NANO_OUTPUT_USD_PER_MILLION = 0.40
 
 current_user_dep = Annotated[User, Depends(get_current_user)]
-OpenAIKeyDep = Annotated[str, Depends(get_openai_key)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 DBDep = Annotated[Session, Depends(get_db)]
 
@@ -59,10 +56,8 @@ def _usage_telemetry(usage_metadata: dict) -> dict:
     )
     uncached_input_tokens = max(input_tokens - cached_input_tokens, 0)
     estimated_cost_usd = (
-        (uncached_input_tokens / 1_000_000)
-        * GPT_5_NANO_INPUT_USD_PER_MILLION
-        + (cached_input_tokens / 1_000_000)
-        * GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION
+        (uncached_input_tokens / 1_000_000) * GPT_5_NANO_INPUT_USD_PER_MILLION
+        + (cached_input_tokens / 1_000_000) * GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION
         + (output_tokens / 1_000_000) * GPT_5_NANO_OUTPUT_USD_PER_MILLION
     )
     return {
@@ -93,21 +88,30 @@ async def get_all_names(db: DBDep):
 
 
 @router.get("/{user_id}", response_model=list[NoteResponse])
-async def read_notes(user_id: str, db: DBDep, current_user: current_user_dep):
+async def read_notes(user_id: int, db: DBDep, current_user: current_user_dep):
     """Return all notes belonging to a user logged in. This endpoint is protected and requires authentication."""
 
-    try:
-        user_notes = db.query(Note).filter(Note.user_id == user_id).all()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-
-    if not user_notes:
+    if current_user.user_id != user_id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No notes found for user '{user_id}'.",
+            status_code=403,
+            detail="You are not allowed to access this user's notes.",
         )
 
-    return user_notes
+    # Users can only access their own notes.
+    if current_user.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only access your own notes.",
+        )
+
+    notes = (
+        db.query(Note)
+        .filter(Note.user_id == current_user.user_id)
+        .all()
+    )
+
+    # Returns [] if no notes exist.
+    return notes
 
 
 @router.post(
@@ -123,12 +127,12 @@ def create_note(request: NoteCreate, db: DBDep, current_user: current_user_dep):
 
     if existing_note:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Note with note_id '{request.note_id}' already exists.",
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A note with this ID already exists.",
         )
 
     db_note = Note(
-        user_id=request.user_id,
+        user_id=current_user.user_id,
         note_id=request.note_id,
         title=request.title,
         subject=request.subject,
@@ -143,60 +147,86 @@ def create_note(request: NoteCreate, db: DBDep, current_user: current_user_dep):
         db.refresh(db_note)
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not create note.",
+        )
 
     return db_note
 
 
 @router.delete("/delete_note/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_note(note_id: str, db: DBDep, current_user: current_user_dep):
-    """Delete a note by its ID. This endpoint is protected and requires authentication."""
+    """Delete a note owned by the authenticated user."""
+
     try:
-        db_note = db.query(Note).filter(Note.note_id == note_id).first()
+        db_note = (
+            db.query(Note)
+            .filter(Note.note_id == note_id, Note.user_id == current_user.user_id)
+            .first()
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-    if not db_note:
+    if db_note is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Note with note_id '{note_id}' not found.",
+            detail="Note not found.",
         )
 
     try:
         db.delete(db_note)
         db.commit()
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not delete note.",
+        )
 
 
-@router.put("/update_note/{note_id}", response_model=NoteResponse)
+@router.patch("/update_note/{note_id}", response_model=NoteResponse)
 def update_note(
     note_id: str, request: NoteUpdate, db: DBDep, current_user: current_user_dep
 ):
     """Update a note's title, subject, and content. This endpoint is protected and requires authentication."""
     try:
-        db_note = db.query(Note).filter(Note.note_id == note_id).first()
+        db_note = (
+            db.query(Note)
+            .filter(Note.note_id == note_id, Note.user_id == current_user.user_id)
+            .first()
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-    if not db_note:
+    if db_note is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Note with note_id '{note_id}' not found.",
+            detail="Note not found.",
         )
 
-    db_note.title = request.title
-    db_note.subject = request.subject
-    db_note.content = request.content
+    updates = request.model_dump(exclude_unset=True)
+
+    if not updates:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Provide at least one field to update.",
+        )
+
+    for field, value in updates.items():
+        setattr(db_note, field, value)
+
     db_note.updated_at = datetime.now(timezone.utc)
 
     try:
         db.commit()
         db.refresh(db_note)
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not update note.",
+        )
 
     return db_note
 
@@ -231,19 +261,24 @@ async def quiz_generation(
     api_key: OpenAIKeyDep,
 ) -> AsyncIterator[ServerSentEvent]:
     """Generate a quiz and stream workflow updates. Protected endpoint."""
-    try:
-        db_note = db.query(Note).filter(Note.note_id == note_id).first()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-    if not db_note:
+    db_note = (
+        db.query(Note)
+        .filter(
+            Note.note_id == note_id,
+            Note.user_id == current_user.user_id,
+        )
+        .first()
+    )
+
+    if db_note is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Note with note_id '{note_id}' not found.",
+            detail="Note not found.",
         )
 
     initial_state = _initial_agent_state(db_note)
-    llm = models.get("llm") if openai_key_context.get() is None else load_llm(api_key)
+    llm = load_llm(api_key)
     workflow = build_workflow(llm)
 
     result = initial_state.model_dump()
@@ -275,4 +310,7 @@ async def quiz_generation(
         yield ServerSentEvent(event="complete", data=response_data)
 
     except Exception as e:
-        yield ServerSentEvent(event="error", data={"error": str(e)})
+        yield ServerSentEvent(
+            event="error",
+            data={"error": "Quiz generation failed. Please try again."},
+        )

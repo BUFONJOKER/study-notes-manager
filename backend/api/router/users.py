@@ -16,6 +16,7 @@ from api.utils.auth import (
 
 router = APIRouter(prefix="/users", tags=["users"])
 
+
 # --- Login ---
 @router.post("/login", response_model=Token)
 async def login(
@@ -44,6 +45,7 @@ async def login(
     )
     return Token(access_token=access_token, token_type="bearer")
 
+
 # --- Create User ---
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(
@@ -64,54 +66,89 @@ async def create_user(
     db.refresh(new_user)
     return new_user
 
+
 # --- Get All Users ---
-@router.get("/", response_model=list[UserResponse])
-async def get_all_users(
-    db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],  # protected
+# @router.get("/", response_model=list[UserResponse])
+# async def get_all_users(
+#     db: Annotated[Session, Depends(get_db)],
+#     current_user: Annotated[User, Depends(get_current_user)],  # protected
+# ):
+#     """Get all users data protected"""
+#     return db.query(User).all()
+
+
+# --- Get Current User ---
+@router.get("/me", response_model=UserResponse)
+async def get_me(
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
-    """Get all users data protected"""
-    return db.query(User).all()
+    """Return the currently authenticated user."""
+    return UserResponse(
+        user_id=current_user.user_id,
+        user_name=current_user.user_name,
+    )
+
 
 # --- Get Single User ---
-@router.get("/{user_id}", response_model=UserResponse)
-async def get_user(
-    user_id: int,
-    db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],  # protected
-):
-    """Get user Notes data protected."""
-    user = db.query(User).filter(User.user_id == user_id).first()
+# @router.get("/{user_id}", response_model=UserResponse)
+# async def get_user(
+#     user_id: int,
+#     db: Annotated[Session, Depends(get_db)],
+#     current_user: Annotated[User, Depends(get_current_user)],  # protected
+# ):
+#     """Get user Notes data protected."""
+#     user = db.query(User).filter(User.user_id == user_id).first()
 
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+#     if not user:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    note = db.query(Note).filter(Note.user_id == user_id).first()
+#     note = db.query(Note).filter(Note.user_id == user_id).first()
 
-    if not note:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No notes found for this user")
+#     if not note:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No notes found for this user")
 
-    return note
+#     return note
+
 
 # --- Update User ---
 @router.put("/{user_id}", response_model=UserResponse)
 async def update_user(
     user_id: int,
-    user_data: UserUpdate,
+    user_update: UserUpdate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],  # protected
 ):
     """Update user data"""
     user = db.query(User).filter(User.user_id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    if user_data.user_name:
-        user.user_name = user_data.user_name
-    if user_data.password:
-        user.password = user_data.password  # Uses your password setter
+
+    if current_user.user_id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not allowed to update this user.",
+        )
+
+    db_user = db.query(User).filter(User.user_id == user_id).first()
+
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    if user_update.user_name is not None:
+        db_user.user_name = user_update.user_name
+
+    if user_update.password is not None:
+        db_user.password = user_update.password.get_secret_value()
+
+    if user_update.user_name is None and user_update.password is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide at least one field to update.",
+        )
+
     db.commit()
-    db.refresh(user)
-    return user
+    db.refresh(db_user)
+
+    return db_user
+
 
 # --- Delete User ---
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -121,8 +158,15 @@ async def delete_user(
     current_user: Annotated[User, Depends(get_current_user)],  # protected
 ):
     """Delete user data"""
+    if current_user.user_id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not allowed to delete this user.",
+        )
     user = db.query(User).filter(User.user_id == user_id).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     db.delete(user)
     db.commit()

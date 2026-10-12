@@ -1,37 +1,50 @@
+
 from langchain_core.prompts import ChatPromptTemplate
 
 from agent.schemas.agent_state import AgentState
+from agent.schemas.analysis import StudyNotesAnalysis
+
 
 async def analyze(state: AgentState, llm) -> dict:
-    """
-    Analyze the study notes and generate a comprehensive analysis report.
-
-    Args:
-        state: Current agent state.
-        llm: LLM instance injected by the workflow. If None, loads a default LLM.
-
-    Returns:
-        Dictionary containing the analysis result.
-    """
+    """Analyze study notes and return structured analysis."""
 
     prompt = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
-                "You are an expert educator tasked with analyzing study notes. Provide a comprehensive analysis that includes:\n"
-                "1. Main Theme: The central topic or concept of the notes\n"
-                "2. Key Points: 3-5 most important points or ideas\n"
-                "3. Interconnections: How different concepts relate to each other\n"
-                "4. Practical Applications: Real-world relevance or uses\n"
-                "5. Critical Insights: Important observations or deeper implications\n\n"
-                "Be clear, concise, and well-organized.",
+                """
+                You are an expert educator analyzing study notes.
+
+                Produce an accurate, concise report containing:
+                1. Main theme of the notes.
+                2. Three to five essential key points.
+                3. Relationships between the concepts.
+                4. Practical, real-world applications.
+                5. Important insights and implications.
+
+                Use simple language and clear explanations.
+                Base your analysis on the supplied notes.
+                Do not invent facts or unsupported information.
+                If information is missing, state that clearly.
+                Avoid unnecessary repetition.
+                """,
             ),
-            ("human", "Title: {title}\nSubject: {subject}\n\nContent:\n{content}"),
+            (
+                "human",
+                """
+                Title: {title}
+                Subject: {subject}
+
+                Content:
+                {content}
+                """,
+            ),
         ]
     )
 
-    # Format the prompt using state attributes
-    formatted_prompt = prompt.invoke(
+    structured_llm = llm.with_structured_output(StudyNotesAnalysis)
+
+    result = await (prompt | structured_llm).ainvoke(
         {
             "title": state.note_title,
             "subject": state.note_subject,
@@ -39,7 +52,4 @@ async def analyze(state: AgentState, llm) -> dict:
         }
     )
 
-    # Invoke model and return response
-    response = await llm.ainvoke(formatted_prompt)
-
-    return {"analysis_result": response.content}
+    return {"analysis_result": result}

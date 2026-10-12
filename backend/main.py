@@ -1,40 +1,17 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.router.notes import router as notes_router
 from api.router.users import router as users_router
 from api.router.openai import router as openai_router
-from agent.model.llm import load_llm
 from config import get_settings
-from api.utils.state import models
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    settings = get_settings()
-
-    # Only preload LLM if key exists in .env
-    if settings.OPENAI_API_KEY:
-        try:
-            models["llm"] = load_llm(api_key=settings.OPENAI_API_KEY)
-        except Exception as e:
-            raise RuntimeError(f"Failed to load LLM: {e}")
-    else:
-        print("Warning: No OPENAI_API_KEY in .env. Users must provide their own key.")
-
-    yield
-
-    # Cleanup on shutdown
-    models.clear()
-
+settings = get_settings()
 
 app = FastAPI(
     title="Study Notes Manager",
     description="API for managing study notes.",
     version="1.0.0",
-    lifespan=lifespan,
 )
 
 origins = [

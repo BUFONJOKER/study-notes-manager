@@ -1,13 +1,10 @@
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import BaseModel, Field, field_serializer, ConfigDict
 from datetime import datetime
 
 
 class NoteCreate(BaseModel):
     """Schema for creating a new note."""
 
-    user_id: int = Field(
-        ..., example=1, description="ID of the user creating the note."
-    )
     note_id: str = Field(
         ..., example="note_123", description="Unique identifier for the note."
     )
@@ -41,11 +38,8 @@ class NoteUpdate(BaseModel):
         example="This is the updated content of my note.",
         description="Content of the note.",
     )
-    quiz: str | None = Field(
-        default=None,
-        example=["What is concept1?", "Explain concept2.", "Describe concept3."],
-        description="Quiz generated related to the note. which will be generated later in the workflow and can be updated later.",
-    )
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class NoteResponse(BaseModel):

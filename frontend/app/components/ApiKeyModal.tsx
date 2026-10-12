@@ -1,13 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { KeyRound, X, Eye, EyeOff, Lock, Check } from "lucide-react";
+import { KeyRound, X, Eye, EyeOff, Lock, Check, Trash2 } from "lucide-react";
+import { openaiService } from "@/services/openaiService";
 
 interface ApiKeyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (key: string) => void;
   isConfigured?: boolean;
+  onClear?: () => void;
+  currentKey?: string;
 }
 
 export default function ApiKeyModal({
@@ -15,38 +18,79 @@ export default function ApiKeyModal({
   onClose,
   onSuccess,
   isConfigured = false,
+  onClear,
+  currentKey = "",
 }: ApiKeyModalProps) {
-  const [apiKey, setApiKey] = useState("");
+  const [apiKey, setApiKey] = useState(currentKey);
   const [showKey, setShowKey] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [validating, setValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
+  const normalizeKey = (value: string) => value.trim();
+
+  const handleConfigure = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!apiKey.trim()) {
-      setError("Please enter a valid OpenAI API key.");
+    const trimmed = normalizeKey(apiKey);
+    if (!trimmed || !trimmed.startsWith("sk-")) {
+      setError("Enter a valid OpenAI API key starting with sk-");
+      setSuccess(null);
       return;
     }
 
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
-    // Simulate API key verification (or connect to your /api/verify endpoint)
-    setTimeout(() => {
+    try {
+      await openaiService.setKey(trimmed);
+      onSuccess(trimmed);
+      setSuccess("API key accepted for this session. It is not stored in the browser or database.");
+      setApiKey(trimmed);
+    } catch {
+      setError("Could not configure the API key right now.");
+    } finally {
       setLoading(false);
-      onSuccess(apiKey);
-      setApiKey("");
-      onClose();
-    }, 700);
+    }
+  };
+
+  const handleValidate = async () => {
+    const trimmed = normalizeKey(apiKey);
+    if (!trimmed || !trimmed.startsWith("sk-")) {
+      setError("Enter a valid OpenAI API key starting with sk-");
+      setSuccess(null);
+      return;
+    }
+
+    setValidating(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      await openaiService.validateKey(trimmed);
+      onSuccess(trimmed);
+      setSuccess("OpenAI key successfully validated.");
+    } catch {
+      setError("The API key could not be validated.");
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  const handleClear = () => {
+    setApiKey("");
+    setError(null);
+    setSuccess(null);
+    setShowKey(false);
+    onClear?.();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#141f1b]/55 p-5 backdrop-blur-xs">
-      {/* Modal Dialog Card */}
       <div className="relative w-full max-w-122.5 rounded-2xl bg-white p-7 shadow-2xl">
-        {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
@@ -55,19 +99,13 @@ export default function ApiKeyModal({
           <X className="h-4 w-4" />
         </button>
 
-        {/* Top Gold Key Badge */}
         <div className="grid h-12 w-12 place-items-center rounded-xl bg-[#f5ead0] text-[#a27624]">
           <KeyRound className="h-5 w-5" />
         </div>
 
-        {/* Session Status Pill */}
         <div className="mt-5 flex h-9 items-center justify-between rounded-lg border border-[#dde4df] bg-[#fafbf9] px-3.5 text-[11px]">
           <div className="flex items-center gap-2 text-[#78847f]">
-            <span
-              className={`h-2 w-2 rounded-full ${
-                isConfigured ? "bg-[#4e8c6d]" : "bg-[#bf8f36]"
-              }`}
-            />
+            <span className={`h-2 w-2 rounded-full ${isConfigured ? "bg-[#4e8c6d]" : "bg-[#bf8f36]"}`} />
             <span>Session status</span>
           </div>
           <strong className="text-[11px] font-semibold text-[#18231f]">
@@ -75,17 +113,14 @@ export default function ApiKeyModal({
           </strong>
         </div>
 
-        {/* Title & Description */}
         <h2 className="mt-5 font-serif text-[26px] font-semibold leading-tight text-[#18231f]">
           Set up AI features
         </h2>
         <p className="mt-2 text-xs leading-relaxed text-[#51605a]">
-          Enter your OpenAI API key to generate quizzes and use AI study tools.
-          The application uses <b className="font-semibold text-[#18231f]">gpt-5-nano</b>.
+          Enter your OpenAI API key to generate quizzes and use AI study tools. This key stays in frontend memory only for the current browser session.
         </p>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-5">
+        <form onSubmit={handleConfigure} className="mt-5">
           <label className="block text-[11px] font-semibold text-[#51605a]">
             OpenAI API key
             <div className="mt-1.5 flex h-11 items-center rounded-xl border border-[#dde4df] bg-white px-3 transition-colors focus-within:border-[#1f5b45] focus-within:ring-2 focus-within:ring-[#1f5b45]/10">
@@ -102,48 +137,52 @@ export default function ApiKeyModal({
                 onClick={() => setShowKey(!showKey)}
                 className="grid h-8 w-8 place-items-center text-[#78847f] hover:text-[#18231f]"
               >
-                {showKey ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </label>
 
-          {error && (
-            <p className="mt-2 text-[11px] text-[#b7443d]">{error}</p>
-          )}
+          {error && <p className="mt-2 text-[11px] text-[#b7443d]">{error}</p>}
+          {success && <p className="mt-2 text-[11px] text-[#1f5b45]">{success}</p>}
 
-          {/* Secure Note Notice */}
           <div className="mt-3.5 flex items-start gap-2.5 rounded-xl bg-[#f2f7f3] p-3 text-[#1f5b45]">
             <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[#1f5b45]" />
             <div>
-              <strong className="block text-[11px] font-semibold text-[#18231f]">
-                Secure by design
-              </strong>
+              <strong className="block text-[11px] font-semibold text-[#18231f]">Secure by design</strong>
               <span className="block text-[10px] leading-tight text-[#78847f]">
-                Your key is discarded from the form after verification and is never shown again.
+                The full key is never displayed again after entry and is cleared on refresh unless kept in memory.
               </span>
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="mt-6 grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={onClose}
-              className="h-10 rounded-xl border border-[#dde4df] bg-white text-xs font-semibold text-[#18231f] hover:bg-[#fafbf9] transition-colors"
+              onClick={handleClear}
+              className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-[#dde4df] bg-white text-xs font-semibold text-[#18231f] hover:bg-[#fafbf9] transition-colors"
             >
-              Cancel
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>Clear</span>
             </button>
             <button
-              type="submit"
-              disabled={loading}
-              className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-[#1f5b45] text-xs font-semibold text-white shadow-xs hover:bg-[#174b38] transition-colors disabled:opacity-50"
+              type="button"
+              onClick={handleValidate}
+              disabled={validating || loading}
+              className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-[#dde4df] bg-white text-xs font-semibold text-[#18231f] hover:bg-[#fafbf9] transition-colors disabled:opacity-50"
             >
               <Check className="h-3.5 w-3.5" />
-              <span>{loading ? "Verifying..." : "Verify & connect"}</span>
+              <span>{validating ? "Validating..." : "Validate"}</span>
+            </button>
+          </div>
+
+          <div className="mt-3">
+            <button
+              type="submit"
+              disabled={loading || validating}
+              className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-[#1f5b45] text-xs font-semibold text-white shadow-xs hover:bg-[#174b38] transition-colors disabled:opacity-50"
+            >
+              <Check className="h-3.5 w-3.5" />
+              <span>{loading ? "Configuring..." : "Configure key"}</span>
             </button>
           </div>
         </form>

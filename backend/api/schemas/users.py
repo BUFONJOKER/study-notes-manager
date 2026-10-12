@@ -1,12 +1,13 @@
 from pydantic import BaseModel, Field, SecretStr
+from typing import Optional
 
 class UserCreate(BaseModel):
     user_name: str = Field(..., example="john_doe", description="Name of the user.")
     password: SecretStr = Field(...,min_length=8,description="Password must be at least 8 characters long", example="secure_password")
 
 class UserUpdate(BaseModel):
-    user_name: str | None = Field(default=None, example="new_username", description="New name of the user.")
-    password: SecretStr = Field(...,min_length=8,description="Password must be at least 8 characters long", example="secure_password")
+    user_name: Optional[str] = Field(default=None, example="new_username", description="New name of the user.")
+    password: Optional[SecretStr] = Field(default=None, min_length=8, description="Password must be at least 8 characters long", example="secure_password")
 
 class UserResponse(BaseModel):
     user_id: int = Field(..., example=1, description="ID of the user which will be generated automatically when the user is created.")

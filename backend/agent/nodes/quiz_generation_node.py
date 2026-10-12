@@ -1,60 +1,63 @@
+
 from langchain_core.prompts import ChatPromptTemplate
+
 from agent.schemas.agent_state import AgentState
-from agent.model.llm import load_llm
-from pydantic import BaseModel, Field
-
-
-class QuizGenerationState(BaseModel):
-    generated_questions: list[str] = Field(
-        ..., description="List of quiz questions generated based on the key concepts"
-    )
+from agent.schemas.quiz_generation import QuizGenerationOutput
 
 
 async def quiz_generation(state: AgentState, llm) -> dict:
-    """
-    Use key concepts to generate quiz questions.
+    """Generate quiz questions from the summary and key concepts."""
 
-    Args:
-        state: Current agent state.
-        llm: LLM instance injected by the workflow.
+    if not state.summary_result.strip():
+        raise ValueError("Summary result is required to generate a quiz.")
 
-    Returns:
-        Dictionary containing generated quiz questions.
-    """
+    if not state.key_concepts:
+        raise ValueError("Key concepts are required to generate a quiz.")
 
-    # Create a structured-output version of the injected LLM
-    structured_llm = llm.with_structured_output(QuizGenerationState)
-
-    # Define the prompt
     prompt = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
-                "You are an expert educator creating quiz questions. Generate 8-12 multiple-choice or short-answer questions that:\n\n"
-                "- Test understanding of the key concepts (not just memorization)\n"
-                "- Cover different difficulty levels (basic recall to application)\n"
-                "- Are clear and unambiguous\n"
-                "- Use the exact terminology from the summary\n"
-                "- Build from simpler to more complex understanding\n\n"
-                "Format each question clearly and concisely.",
+                """
+                You are an expert educator creating quiz questions.
+
+                Generate 8-12 questions based on the supplied summary
+                and key concepts.
+
+                Requirements:
+                - Test understanding and application, not only memorization.
+                - Cover different difficulty levels.
+                - Use clear, specific, unambiguous wording.
+                - Preserve the terminology used in the summary.
+                - Progress from simpler to more challenging questions.
+                - Do not introduce facts unsupported by the material.
+                - Include multiple-choice or short-answer questions.
+                - For multiple-choice questions, include answer options
+                  in the question text.
+                """,
             ),
             (
                 "human",
-                "Create quiz questions based on:\n\nSummary:\n{summary_result}\n\nKey Concepts: {key_concepts}",
+                """
+                Summary:
+                {summary_result}
+
+                Key Concepts:
+                {key_concepts}
+                """,
             ),
         ]
     )
 
-    # Format the prompt using the current state
-    formatted_prompt = prompt.invoke(
+    structured_llm = llm.with_structured_output(QuizGenerationOutput)
+
+    result = await (prompt | structured_llm).ainvoke(
         {
             "summary_result": state.summary_result,
-            "key_concepts": state.key_concepts,
+            "key_concepts": "\n".join(
+                f"- {concept}" for concept in state.key_concepts
+            ),
         }
     )
 
-    # Invoke the structured-output LLM
-    response = await structured_llm.ainvoke(formatted_prompt)
-
-    # response is already a QuizGenerationState object
-    return {"generated_questions": response.generated_questions}
+    return {"generated_questions": result.generated_questions}

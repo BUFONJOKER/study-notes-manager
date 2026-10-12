@@ -7,6 +7,7 @@ class Settings(BaseSettings):
 
    DATABASE_URL: str
    OPENAI_API_KEY: str | None = None
+   APP_ENV: str = "development"
 
    LANGSMITH_TRACING: bool
    LANGSMITH_ENDPOINT: str

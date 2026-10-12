@@ -1,43 +1,33 @@
+
 from langchain_core.prompts import ChatPromptTemplate
+
 from agent.schemas.agent_state import AgentState
-from agent.model.llm import load_llm
-from pydantic import BaseModel, Field
-
-
-class KeyConceptsState(BaseModel):
-    key_concepts: list[str] = Field(
-        ..., description="List of key concepts extracted from the analysis"
-    )
+from agent.schemas.key_concepts import KeyConceptsOutput
 
 
 async def key_concepts(state: AgentState, llm) -> dict:
-    """
-    Extract key concepts from the summary result.
+    """Extract key concepts from the summary."""
 
-    Args:
-        state: Current agent state.
-        llm: LLM instance injected by the workflow.
+    if not state.summary_result.strip():
+        raise ValueError("Summary result is required to extract key concepts.")
 
-    Returns:
-        Dictionary containing extracted key concepts.
-    """
-
-    # Create a structured-output version of the injected LLM
-    structured_llm = llm.with_structured_output(KeyConceptsState)
-
-    # Define the prompt
     prompt = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
-                "You are an expert in knowledge extraction. Extract 8-15 key concepts from the provided summary.\n\n"
-                "Guidelines:\n"
-                "- Include only the most important and foundational terms/concepts\n"
-                "- Use consistent, clear naming (single noun or short phrase)\n"
-                "- Avoid redundancy - do not list similar variations\n"
-                "- Order by importance/frequency of mention\n"
-                "- Each concept should be fundamental to understanding the material\n\n"
-                "Focus on concepts, not definitions.",
+                """
+                You are an expert in knowledge extraction.
+
+                Extract 8-15 important concepts from the supplied summary.
+
+                Guidelines:
+                - Select foundational terms and important ideas.
+                - Use clear, consistent names or short phrases.
+                - Avoid duplicate or closely related concepts.
+                - Order concepts by importance.
+                - Focus on concepts, not their definitions.
+                - Use only concepts supported by the summary.
+                """,
             ),
             (
                 "human",
@@ -46,15 +36,10 @@ async def key_concepts(state: AgentState, llm) -> dict:
         ]
     )
 
-    # Format the prompt using the current state
-    formatted_prompt = prompt.invoke(
-        {
-            "summary_result": state.summary_result,
-        }
+    structured_llm = llm.with_structured_output(KeyConceptsOutput)
+
+    result = await (prompt | structured_llm).ainvoke(
+        {"summary_result": state.summary_result}
     )
 
-    # Invoke the structured-output LLM
-    response = await structured_llm.ainvoke(formatted_prompt)
-
-    # response is already a KeyConceptsState object
-    return {"key_concepts": response.key_concepts}
+    return {"key_concepts": result.key_concepts}
