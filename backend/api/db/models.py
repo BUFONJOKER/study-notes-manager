@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, DateTime, func
+import datetime
+
+from sqlalchemy import DateTime, Integer, JSON, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from api.db.database import Base
-import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -18,7 +19,10 @@ class Note(Base):
     title: Mapped[str] = mapped_column(String, nullable=False)
     subject: Mapped[str] = mapped_column(String, nullable=False)
     content: Mapped[str] = mapped_column(String, nullable=False)
-    quiz: Mapped[str] = mapped_column(String, nullable=True)
+    analysis_result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    summary_result: Mapped[str | None] = mapped_column(String, nullable=True)
+    key_concepts: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+    quiz: Mapped[str | None] = mapped_column(String, nullable=True)
 
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),

@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field, field_serializer, ConfigDict
 from datetime import datetime
 
+from agent.schemas.analysis import StudyNotesAnalysis
+
 
 class NoteCreate(BaseModel):
     """Schema for creating a new note."""
@@ -17,6 +19,16 @@ class NoteCreate(BaseModel):
         example="This is the content of my note.",
         description="Content of the note.",
     )
+    analysis_result: StudyNotesAnalysis | None = Field(
+        default=None, description="Structured analysis of the note."
+    )
+    summary_result: str | None = Field(
+        default=None, example="This is the summary result of the note."
+    )
+    key_concepts: list[str] | None = Field(
+        default=None, example=["concept1", "concept2", "concept3"]
+    )
+
     quiz: str | None = Field(
         default=None,
         example=["What is concept1?", "Explain concept2.", "Describe concept3."],
@@ -60,6 +72,17 @@ class NoteResponse(BaseModel):
         example="This is the content of my note.",
         description="Content of the note.",
     )
+
+    analysis_result: StudyNotesAnalysis | None = Field(
+        default=None, description="Structured analysis of the note."
+    )
+    summary_result: str | None = Field(
+        default=None, example="This is the summary result of the note."
+    )
+    key_concepts: list[str] | None = Field(
+        default=None, example=["concept1", "concept2", "concept3"]
+    )
+
     quiz: str | None = Field(
         default=None,
         example=["What is concept1?", "Explain concept2.", "Describe concept3."],
@@ -96,8 +119,8 @@ class QuizGenerationResponse(BaseModel):
     )
     note_id: str = Field(..., example="note_123")
     title: str = Field(..., example="My Note Title")
-    analysis_result: str = Field(
-        ..., example="This is the analysis result of the note."
+    analysis_result: StudyNotesAnalysis = Field(
+        ..., description="Structured analysis of the note."
     )
     summary_result: str = Field(..., example="This is the summary result of the note.")
     key_concepts: list[str] = Field(..., example=["concept1", "concept2", "concept3"])

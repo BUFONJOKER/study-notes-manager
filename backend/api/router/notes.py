@@ -1,6 +1,8 @@
 """API routes for reading, creating, updating, deleting, and quizzing notes."""
 
-import json, time
+import json
+import logging
+import time
 from collections.abc import AsyncIterator
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -18,7 +20,6 @@ from api.schemas.notes import (
 )
 from api.db.database import get_db
 from api.db.models import Note, User
-from api.db.database import SessionLocal
 from api.utils.auth import get_current_user, OpenAIKeyDep
 
 from agent.schemas.agent_state import AgentState
@@ -29,6 +30,7 @@ from config import get_settings, Settings
 from langchain_core.callbacks import get_usage_metadata_callback
 
 router = APIRouter(prefix="/notes", tags=["notes"])
+logger = logging.getLogger(__name__)
 
 GPT_5_NANO_INPUT_USD_PER_MILLION = 0.05
 GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION = 0.005
@@ -137,6 +139,14 @@ def create_note(request: NoteCreate, db: DBDep, current_user: current_user_dep):
         title=request.title,
         subject=request.subject,
         content=request.content,
+        analysis_result=(
+            request.analysis_result.model_dump()
+            if request.analysis_result is not None
+            else None
+        ),
+        summary_result=request.summary_result,
+        key_concepts=request.key_concepts,
+        quiz=request.quiz,
         created_at=datetime.now(),
         updated_at=datetime.now(),
     )
@@ -243,6 +253,14 @@ def _initial_agent_state(db_note: Note) -> AgentState:
 
 def _save_quiz(db: Session, db_note: Note, result: dict) -> None:
     """Save generated quiz questions to a note."""
+    analysis_result = result.get("analysis_result")
+    db_note.analysis_result = (
+        analysis_result.model_dump()
+        if hasattr(analysis_result, "model_dump")
+        else analysis_result
+    )
+    db_note.summary_result = result.get("summary_result")
+    db_note.key_concepts = result.get("key_concepts")
     db_note.quiz = json.dumps(result["generated_questions"])
     try:
         db_note.updated_at = datetime.now()
@@ -302,15 +320,18 @@ async def quiz_generation(
             "tokens": _usage_telemetry(usage_callback.usage_metadata),
         }
         _save_quiz(db, db_note, result)
-
+        print(f"Result {result}")
         response_data = QuizGenerationResponse(
-            **result, user_id=db_note.user_id
+            **result,
+            user_id=db_note.user_id,
+            title=db_note.title,
         ).model_dump()
-
+        print(f"Response data  = = {response_data}")
         yield ServerSentEvent(event="complete", data=response_data)
 
     except Exception as e:
+        logger.exception("Quiz generation failed for note %s", note_id)
         yield ServerSentEvent(
             event="error",
-            data={"error": "Quiz generation failed. Please try again."},
+            data={"error": f"Quiz generation failed. Please try again due to {e}."},
         )
