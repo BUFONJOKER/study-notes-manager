@@ -2,8 +2,6 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from agent.schemas.agent_state import AgentState
 
-
-
 async def analyze(state: AgentState, llm) -> dict:
     """
     Analyze the study notes and generate a comprehensive analysis report.

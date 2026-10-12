@@ -1,6 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-from backend.agent.schemas.agent_state import AgentState
+from agent.schemas.agent_state import AgentState
 from agent.model.llm import load_llm
 
 
