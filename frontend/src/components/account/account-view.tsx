@@ -9,6 +9,7 @@ import { Icon, PageHeading } from "@/components/ui";
 import { PasswordForm } from "./password-form";
 import { ProfileForm } from "./profile-form";
 import { ProfilePhotoSection } from "./profile-photo-section";
+import { signOut } from "next-auth/react";
 
 export function AccountView() {
   const router = useRouter();
@@ -18,6 +19,13 @@ export function AccountView() {
   const flash = (message: string) => {
     setSaved(message);
     window.setTimeout(() => setSaved(""), 2400);
+  };
+
+  const handleLogOut = async () => {
+    await signOut({
+      callbackUrl: routes.login, // Redirect to the login page after signing out
+      redirect: true, // Ensure the redirect happens
+    });
   };
 
   return (
@@ -38,7 +46,7 @@ export function AccountView() {
           <button className="!text-[#a2413b]" onClick={() => router.push(routes.deleteAccount)}>
             <Icon name="trash" size={17} />Delete account
           </button>
-          <button onClick={() => router.push(routes.login)}><Icon name="arrow" size={17} />Sign out</button>
+          <button onClick={handleLogOut}><Icon name="arrow" size={17} />Sign out</button>
         </aside>
         <div className={cn("account-panel")}>
           <ProfilePhotoSection name={profile.name} />

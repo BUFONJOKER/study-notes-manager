@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent} from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { Button, Icon, PasswordInput } from "@/components/ui";
@@ -12,16 +13,34 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
 
-  const submit = (event: FormEvent) => {
+  const submit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitted(true);
-    if (!username.trim() || password.length < 6) return;
+    setServerError("");
+
+    if(!username.trim() || password.length < 8) {
+      return;
+    }
+
     setLoading(true);
-    window.setTimeout(() => {
-      setLoading(false);
+
+    const result = await signIn("credentials", {
+      username: username.trim(),
+      password: password,
+      redirect: false,
+    });
+
+    setLoading(false);
+
+    if (result?.error) {
+      setServerError(result.error);
+    } else {
       router.push(routes.dashboard);
-    }, 800);
+      router.refresh(); // Refresh the page to update the session state after successful login
+    }
+
   };
 
   return (
@@ -45,7 +64,7 @@ export function LoginForm() {
           label="Password"
           value={password}
           onChange={setPassword}
-          error={submitted && password.length < 6 ? "Password must contain at least 6 characters" : undefined}
+          error={submitted && password.length < 8 ? "Password must contain at least 8 characters" : undefined}
         />
         <div className={cn("auth-row")}>
           <label className="flex min-h-11 items-center gap-2">
