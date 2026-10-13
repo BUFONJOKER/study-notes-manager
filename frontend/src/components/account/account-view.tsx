@@ -43,7 +43,7 @@ export function AccountView() {
           <button onClick={() => document.getElementById("password-section")?.scrollIntoView({ behavior: "smooth" })}>
             <Icon name="lock" size={17} />Password
           </button>
-          <button className="!text-[#a2413b]" onClick={() => router.push(routes.deleteAccount)}>
+          <button className="text-[#a2413b]!" onClick={() => router.push(routes.deleteAccount)}>
             <Icon name="trash" size={17} />Delete account
           </button>
           <button onClick={handleLogOut}><Icon name="arrow" size={17} />Sign out</button>
