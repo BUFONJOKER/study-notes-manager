@@ -77,7 +77,7 @@ export function RegisterForm() {
         />
         <div className={cn("password-meter")}>
           {[0, 1, 2, 3].map((index) => (
-            <i key={index} className={form.password.length >= (index + 1) * 2 ? "!bg-[#4e8c6d]" : ""} />
+            <i key={index} className={form.password.length >= (index + 1) * 2 ? "bg-[#4e8c6d]!" : ""} />
           ))}
         </div>
         <PasswordInput
@@ -96,6 +96,7 @@ export function RegisterForm() {
         <div className={cn("auth-row")}>
           <span>Already have an account?</span>
           <button type="button" className={cn("auth-link")} onClick={() => router.push(routes.login)}>Sign in</button>
+
         </div>
       </form>
     </section>
