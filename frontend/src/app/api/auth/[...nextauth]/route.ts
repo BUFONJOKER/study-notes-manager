@@ -20,7 +20,7 @@ export const authOptions: NextAuthOptions = {
 
                 try {
                     // 2. Send a POST request to the FastAPI login endpoint
-                    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, formData, {
+                    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/login`, formData, {
                         headers: {
                             "Content-Type": "application/x-www-form-urlencoded",
                         },

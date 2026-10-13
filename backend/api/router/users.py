@@ -60,7 +60,7 @@ async def create_user(
             detail="Username already exists",
         )
     new_user = User(user_name=user_data.user_name)
-    new_user.password = user_data.password  # Uses your password setter
+    new_user.password = user_data.password.get_secret_value()  # Uses your password setter
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
