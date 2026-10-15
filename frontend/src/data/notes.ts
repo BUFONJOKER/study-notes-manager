@@ -1,4 +1,4 @@
-import type { Note } from "@/types";
+import type { NoteResponse } from "@/types/note";
 
 export const initialNotes: Note[] = [
   {

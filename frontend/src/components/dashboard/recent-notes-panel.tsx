@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { Badge, Icon } from "@/components/ui";
-import type { Note } from "@/types";
+import type { Note } from "@/types/note";
 
 export function RecentNotesPanel({ notes }: { notes: Note[] }) {
   const router = useRouter();

@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/cn";
 import { Button, Icon, Modal } from "@/components/ui";
-import type { Note } from "@/types";
+import type { Note } from "@/types/note";
 
 type DeleteNoteModalProps = {
   note: Note;

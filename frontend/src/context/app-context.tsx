@@ -4,26 +4,30 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { useRouter } from "next/navigation";
 import { initialNotes } from "@/data/notes";
 import { routes } from "@/lib/routes";
-import type { Note, UserProfile } from "@/types";
+import type { NoteCreate, NoteUpdate, NoteResponse, QuizGenerationResponse } from "@/types/note";
+import type { UserCreate, UserUpdate, UserResponse,  } from "@/types/users";
+import type { OpenAIKeyRequest, OpenAIKeyResponse } from "@/types/openai";
 
 type AppContextValue = {
   // notes
-  notes: Note[];
-  getNote: (id: string) => Note | undefined;
-  saveNote: (note: Note) => void;
-  selectedNote: Note | undefined;
+  notes: NoteResponse[];
+  getNote: (id: string) => NoteResponse | undefined;
+  saveNote: (note: NoteCreate) => void;
+  updateNote: (note: NoteUpdate) => void;
+  selectedNote: NoteResponse | undefined;
   /** Remembers the last note the user opened (used by the quiz screens' back links). */
   selectNote: (id: string) => void;
   // delete-note modal
-  deleteTarget: Note | null;
-  requestDelete: (note: Note) => void;
+  deleteTarget: NoteResponse | null;
+  requestDelete: (note: NoteResponse) => void;
   cancelDelete: () => void;
   confirmDelete: () => void;
   // user
-  profile: UserProfile;
-  setProfile: (profile: UserProfile) => void;
+  profile: UserResponse;
+  setProfile: (profile: UserResponse) => void;
   isNewUser: boolean;
-  registerUser: (profile: UserProfile) => void;
+  registerUser: (profile: UserCreate) => void;
+  updateUser: (profile: UserUpdate) => void;
   deleteAccount: () => void;
   // AI / API key
   apiConfigured: boolean;
@@ -32,24 +36,24 @@ type AppContextValue = {
   openApiModal: () => void;
   closeApiModal: () => void;
   /** Starts quiz generation, or opens the API-key modal when no key is configured. */
-  requestAi: () => void;
+  requestAi: (quiz: QuizGenerationResponse) => void;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const [notes, setNotes] = useState<Note[]>(initialNotes);
+  const [notes, setNotes] = useState<NoteCreate[]>(initialNotes);
   const [selectedId, setSelectedId] = useState(initialNotes[0].id);
-  const [profile, setProfile] = useState<UserProfile>({ name: "Alex Morgan", username: "alexm", email: "alex@example.com" });
-  const [deleteTarget, setDeleteTarget] = useState<Note | null>(null);
+  const [profile, setProfile] = useState<UserResponse>({ name: "Alex Morgan", username: "alexm", email: "alex@example.com" });
+  const [deleteTarget, setDeleteTarget] = useState<NoteResponse | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
   const [apiConfigured, setApiConfigured] = useState(false);
   const [apiModalOpen, setApiModalOpen] = useState(false);
 
   const getNote = useCallback((id: string) => notes.find((note) => note.id === id), [notes]);
 
-  const saveNote = useCallback((note: Note) => {
+  const saveNote = useCallback((note: NoteCreate) => {
     setNotes((prev) => [note, ...prev.filter((n) => n.id !== note.id)]);
     setSelectedId(note.id);
     setIsNewUser(false);

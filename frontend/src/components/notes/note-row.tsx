@@ -5,7 +5,7 @@ import { useApp } from "@/context/app-context";
 import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { Badge, Icon } from "@/components/ui";
-import type { Note } from "@/types";
+import type { Note } from "@/types/note";
 
 export function NoteRow({ note }: { note: Note }) {
   const router = useRouter();
