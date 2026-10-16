@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { useRouter } from "next/navigation";
 import { initialNotes } from "@/data/notes";
 import { routes } from "@/lib/routes";
-import type { NoteCreate, NoteUpdate, NoteResponse, QuizGenerationResponse } from "@/types/note";
+import type { NoteCreate, NoteUpdate, NoteResponse, QuizGenerationResponse } from "@/types/notes";
 import type { UserCreate, UserUpdate, UserResponse,  } from "@/types/users";
 import type { OpenAIKeyRequest, OpenAIKeyResponse } from "@/types/openai";
 
@@ -24,7 +24,7 @@ type AppContextValue = {
   confirmDelete: () => void;
   // user
   profile: UserResponse;
-  setProfile: (profile: UserResponse) => void;
+  setProfile: (profile: UserCreate) => void;
   isNewUser: boolean;
   registerUser: (profile: UserCreate) => void;
   updateUser: (profile: UserUpdate) => void;
@@ -44,29 +44,29 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [notes, setNotes] = useState<NoteCreate[]>(initialNotes);
-  const [selectedId, setSelectedId] = useState(initialNotes[0].id);
-  const [profile, setProfile] = useState<UserResponse>({ name: "Alex Morgan", username: "alexm", email: "alex@example.com" });
+  const [selectedId, setSelectedId] = useState(initialNotes[0].note_id);
+  const [profile, setProfile] = useState<UserResponse>({user_id:1, user_name: "alexm"});
   const [deleteTarget, setDeleteTarget] = useState<NoteResponse | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
   const [apiConfigured, setApiConfigured] = useState(false);
   const [apiModalOpen, setApiModalOpen] = useState(false);
 
-  const getNote = useCallback((id: string) => notes.find((note) => note.id === id), [notes]);
+  const getNote = useCallback((note_id: string) => notes.find((note) => note.note_id === note_id), [notes]);
 
   const saveNote = useCallback((note: NoteCreate) => {
-    setNotes((prev) => [note, ...prev.filter((n) => n.id !== note.id)]);
-    setSelectedId(note.id);
+    setNotes((prev) => [note, ...prev.filter((n) => n.note_id !== note.note_id)]);
+    setSelectedId(note.note_id);
     setIsNewUser(false);
   }, []);
 
   const confirmDelete = useCallback(() => {
     if (!deleteTarget) return;
-    setNotes((prev) => prev.filter((n) => n.id !== deleteTarget.id));
+    setNotes((prev) => prev.filter((n) => n.note_id !== deleteTarget.note_id));
     setDeleteTarget(null);
     router.push(routes.notes);
   }, [deleteTarget, router]);
 
-  const registerUser = useCallback((newProfile: UserProfile) => {
+  const registerUser = useCallback((newProfile: UserCreate) => {
     setProfile(newProfile);
     setIsNewUser(true);
     router.push(routes.dashboard);

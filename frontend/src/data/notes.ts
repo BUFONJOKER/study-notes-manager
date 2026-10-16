@@ -1,6 +1,6 @@
-import type { NoteResponse } from "@/types/note";
+import {NoteResponse} from "@/types/notes";
 
-export const initialNotes: Note[] = [
+export const initialNotes: NoteResponse[] = [
   {
     id: "BIO-204-07",
     title: "Cellular Respiration & Energy",

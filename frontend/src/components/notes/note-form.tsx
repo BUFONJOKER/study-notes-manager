@@ -6,7 +6,7 @@ import { useApp } from "@/context/app-context";
 import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { BackLink, Button, Icon, PageHeading } from "@/components/ui";
-import type { Note } from "@/types/note";
+import type { Note } from "@/types/notes";
 
 type NoteFormProps = {
   mode: "create" | "edit";
