@@ -62,7 +62,7 @@ coverage/
 dist/
 build/
 /build
-
+study_notes.db
 
 # =========================================
 # 🔹 JAVASCRIPT / FRONTEND RULES (Any Folder)

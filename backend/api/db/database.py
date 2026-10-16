@@ -11,15 +11,33 @@ DATABASE_URL = settings.DATABASE_URL
 class Base(DeclarativeBase):
     pass
 
+engine_kwargs = {
+    "pool_pre_ping": True,  # Test connection before using
+}
+
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs.update({
+        "connect_args": {"check_same_thread": False},  # SQLite specific argument
+    })
+
+else:
+    engine_kwargs.update({
+        "pool_size": 5,          # Maintains 5 persistent connections
+        "max_overflow": 10,      # Can create 10 additional temporary connections
+        "pool_timeout": 30,      # Wait 30 seconds for available connection
+        "pool_recycle": 3600,    # Recycle connections after 1 hour
+    })
 # Create the database engine
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=5,          # Maintains 5 persistent connections
-    max_overflow=10,      # Can create 10 additional temporary connections
-    pool_timeout=30,      # Wait 30 seconds for available connection
-    pool_recycle=3600,    # Recycle connections after 1 hour
-    pool_pre_ping=True    # Test connection before using
-)
+# engine = create_engine(
+#     DATABASE_URL,
+#     pool_size=5,          # Maintains 5 persistent connections
+#     max_overflow=10,      # Can create 10 additional temporary connections
+#     pool_timeout=30,      # Wait 30 seconds for available connection
+#     pool_recycle=3600,    # Recycle connections after 1 hour
+#     pool_pre_ping=True    # Test connection before using
+# )
+
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)
 
