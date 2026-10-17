@@ -46,7 +46,7 @@ export type NoteResponse = {
   analysis_result: StudyNotesAnalysis | null;
   summary_result: string | null;
   key_concepts: string[] | null;
-  quiz: string | null;
+  quiz: string[] | null;
   created_at: string; // ISO format string from serialize_datetime
   updated_at: string; // ISO format string from serialize_datetime
 };
@@ -61,4 +61,18 @@ export type QuizGenerationResponse = {
   key_concepts: string[];
   generated_questions: string[];
   telemetry: UsageTelemetry;
+};
+
+
+export type QuizStatus =
+  | "idle"
+  | "generating"
+  | "completed"
+  | "error"
+  | "cancelled";
+
+export type QuizProgressState = {
+  node: string | null;
+  data: unknown;
+  history: string[];
 };

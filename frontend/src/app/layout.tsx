@@ -17,9 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} ${newsreader.variable}`} data-scroll-behavior="smooth">
       <body>
 
-        <AppProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </AppProvider>
+        <AuthProvider>
+          <AppProvider>{children}</AppProvider>
+        </AuthProvider>
 
       </body>
     </html>

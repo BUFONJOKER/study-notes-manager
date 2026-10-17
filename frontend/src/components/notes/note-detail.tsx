@@ -11,7 +11,7 @@ import { NoteNotFound } from "./note-not-found";
 export function NoteDetail({ note_id }: { note_id: string }) {
   const router = useRouter();
   const { getNote, selectNote,selectedNote, requestDelete, requestAi, apiConfigured } = useApp();
-  const note = getNote(Number(note_id));
+  const note = getNote(note_id);
 
   useEffect(() => {
     selectNote(note_id);

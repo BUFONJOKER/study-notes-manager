@@ -1,37 +1,75 @@
+
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, useEffect, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
+import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import type { NoteCreate, NoteUpdate, NoteResponse } from "@/types/notes";
-import type { UserCreate, UserUpdate, UserResponse } from "@/types/users";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+
+import type {
+  NoteCreate,
+  NoteUpdate,
+  NoteResponse,
+  QuizStatus,
+  QuizProgressState,
+  QuizGenerationResponse
+} from "@/types/notes";
+import type {
+  UserCreate,
+  UserUpdate,
+  UserResponse,
+} from "@/types/users";
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+
 
 type AppContextValue = {
-  // Auth state driven by NextAuth
   token: string | null;
   logout: () => void;
-  // Notes data state management
+
   notes: NoteResponse[];
-  getNote: (user_id: number) => NoteResponse | undefined;
+  getNote: (noteId: string) => NoteResponse | undefined;
   saveNote: (note: NoteCreate) => Promise<void>;
-  updateNote: (id: string, note: NoteUpdate) => Promise<void>;
+  updateNote: (noteId: string, note: NoteUpdate) => Promise<void>;
   selectedNote: NoteResponse | undefined;
-  selectNote: (note_id: string) => void;
-  // delete-note modal handling
+  selectNote: (noteId: string) => void;
+
   deleteTarget: NoteResponse | null;
   requestDelete: (note: NoteResponse) => void;
   cancelDelete: () => void;
   confirmDelete: () => Promise<void>;
-  // user settings
+
   isNewUser: boolean;
   profile: UserResponse | null;
-  setProfile: (profile: UserResponse | null) => void;
-  deleteAccount: (userId: number) => Promise<void>;
+  setProfile: Dispatch<SetStateAction<UserResponse | null>>;
   registerUser: (userData: UserCreate) => Promise<void>;
-  updateUser: (userId: number, userData: UserUpdate) => Promise<void>;
-  // AI request handling
+  updateUser: (
+    userId: number,
+    userData: UserUpdate,
+  ) => Promise<void>;
+  deleteAccount: (userId: number) => Promise<void>;
 
-  // AI Keys settings configuration
+  generateQuiz: (noteId: string) => Promise<void>;
+  cancelQuizGeneration: () => void;
+  quizStatus: QuizStatus;
+  quizProgress: QuizProgressState;
+  quizError: string | null;
+  quizResult: Record<string, unknown> | null;
+  resetQuizState: () => void;
+
   apiConfigured: boolean;
   setApiConfigured: (value: boolean) => void;
   apiModalOpen: boolean;
@@ -42,119 +80,536 @@ type AppContextValue = {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const EMPTY_PROGRESS: QuizProgressState = {
+  node: null,
+  data: null,
+  history: [],
+};
 
-export function AppProvider({ children }: { children: ReactNode }) {
-  // 1. Automatically grab your custom session layout from NextAuth
-  const { data: session, status } = useSession();
+function getErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as
+      | { detail?: string; message?: string }
+      | undefined;
 
-  // Cast token securely from NextAuth Session type extension
-  const token = (session as any)?.accessToken || null;
+    return (
+      data?.detail ||
+      data?.message ||
+      error.message ||
+      "The request failed."
+    );
+  }
 
-  // --- Real State Hooks ---
+  return error instanceof Error
+    ? error.message
+    : "An unexpected error occurred.";
+}
+
+function formatSseError(data: unknown): string {
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "error" in data &&
+    typeof data.error === "string"
+  ) {
+    return data.error;
+  }
+
+  return "Quiz generation failed. Please try again.";
+}
+
+export function AppProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const { data: session, status: sessionStatus } = useSession();
+  const router = useRouter();
+
+  const token =
+    (session as { accessToken?: string } | null)?.accessToken ?? null;
+
   const [notes, setNotes] = useState<NoteResponse[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<NoteResponse | null>(null);
-  const [isNewUser, setIsNewUser] = useState<boolean>(false);
+  const [deleteTarget, setDeleteTarget] =
+    useState<NoteResponse | null>(null);
+
   const [profile, setProfile] = useState<UserResponse | null>(null);
-  const [apiConfigured, setApiConfigured] = useState<boolean>(false);
-  const [apiModalOpen, setApiModalOpen] = useState<boolean>(false);
+  const [isNewUser, setIsNewUser] = useState(false);
 
-  // Helper config options for authenticated headers
-  const authHeaders = useMemo(() => ({
-    "Authorization": `Bearer ${token}`,
-    "Content-Type": "application/json",
-  }), [token]);
+  const [apiConfigured, setApiConfigured] = useState(false);
+  const [apiModalOpen, setApiModalOpen] = useState(false);
 
-  // --- Sync State Data on Auth Verification ---
+  const [quizStatus, setQuizStatus] = useState<QuizStatus>("idle");
+  const [quizProgress, setQuizProgress] =
+    useState<QuizProgressState>(EMPTY_PROGRESS);
+  const [quizError, setQuizError] = useState<string | null>(null);
+  const [quizResult, setQuizResult] =
+    useState<Record<string, unknown> | null>(null);
+
+  const streamControllerRef = useRef<AbortController | null>(null);
+  const activeQuizIdRef = useRef<string | null>(null);
+
+  const authHeaders = useMemo(
+    () => ({
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    }),
+    [token],
+  );
+
+  // --------------------------------------------------
+  // Load the authenticated user's profile and notes
+  // --------------------------------------------------
+
   useEffect(() => {
-    if (status !== "authenticated" || !token) {
+    if (sessionStatus === "loading") return;
+
+    if (sessionStatus !== "authenticated" || !token) {
       setNotes([]);
       setProfile(null);
+      setSelectedId(null);
+      setDeleteTarget(null);
+      setIsNewUser(false);
       setApiConfigured(false);
       return;
     }
 
-    // Set initial user info from NextAuth profile baseline data
-    if (session?.user?.id && session.user.name) {
-      setProfile({
-        user_id: Number(session.user.id),
-        user_name: session.user.name,
-      });
+    let cancelled = false;
+
+    async function loadUserData() {
+      try {
+        const userResponse = await axios.get<UserResponse>(
+          `${API_BASE_URL}/users/me`,
+          { headers: authHeaders },
+        );
+
+        if (cancelled) return;
+
+        const user = userResponse.data;
+        setProfile(user);
+
+        const notesResponse = await axios.get<NoteResponse[]>(
+          `${API_BASE_URL}/notes/${user.user_id}`,
+          { headers: authHeaders },
+        );
+
+        if (cancelled) return;
+
+        const userNotes = notesResponse.data;
+        setNotes(userNotes);
+        setIsNewUser(userNotes.length === 0);
+
+        setSelectedId((currentId) => {
+          if (
+            currentId &&
+            userNotes.some((note) => note.note_id === currentId)
+          ) {
+            return currentId;
+          }
+
+          return null;
+        });
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load user data:", error);
+        }
+      }
     }
 
-    // // Fetch OpenAI Validation Status on App Startup
-    // fetch(`${API_BASE_URL}/openai/validate-key`, { headers: authHeaders })
-    //   .then((res) => {
-    //     if (res.ok) setApiConfigured(true);
-    //   })
-    //   .catch(() => setApiConfigured(false));
+    void loadUserData();
 
-  }, [token, status, session, authHeaders]);
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionStatus, token, authHeaders]);
+
+  // --------------------------------------------------
+  // Authentication
+  // --------------------------------------------------
 
   const logout = useCallback(() => {
-    signOut({ callbackUrl: "/login" });
+    void signOut({ callbackUrl: "/login" });
   }, []);
 
-  // Profile Operations
+  // --------------------------------------------------
+  // Notes
+  // --------------------------------------------------
 
-  const registerUser = useCallback(async (userData: UserCreate) => {
-    const res = await axios.post(`${API_BASE_URL}/users/`, userData);
-    setProfile(res.data);
-    setIsNewUser(true);
+  const getNote = useCallback(
+    (noteId: string) =>
+      notes.find((note) => note.note_id === noteId),
+    [notes],
+  );
+
+  const selectNote = useCallback((noteId: string) => {
+    setSelectedId(noteId);
   }, []);
 
-  const updateUser = useCallback(async (userId: number, userData: UserUpdate) => {
-    const res = await axios.put(`${API_BASE_URL}/users/${userId}/`, userData);
-    setProfile(res.data);
-  }, []);
+  const selectedNote = useMemo(
+    () => notes.find((note) => note.note_id === selectedId),
+    [notes, selectedId],
+  );
 
-  const deleteAccount = useCallback(async (userId: number) => {
-    await axios.delete(`${API_BASE_URL}/users/${userId}/`);
-    setProfile(null);
-    setNotes([]);
-    setApiConfigured(false);
-    setIsNewUser(true);
-  }, []);
+  const saveNote = useCallback(
+    async (note: NoteCreate) => {
+      const response = await axios.post<NoteResponse>(
+        `${API_BASE_URL}/notes/create_note`,
+        note,
+        { headers: authHeaders },
+      );
 
-  // Note Operations
-  const getNote = useCallback((user_id: number) => {
-    return notes.find((note) => note.user_id === user_id);
-  }, [notes]);
+      const savedNote = response.data;
 
-  const selectNote = useCallback((note_id: string) => {
-    setSelectedId(note_id);
-  }, []);
+      setNotes((current) => [
+        savedNote,
+        ...current.filter(
+          (item) => item.note_id !== savedNote.note_id,
+        ),
+      ]);
 
-  const saveNote = useCallback(async (note: NoteCreate) => {
-    const res = await axios.post(`${API_BASE_URL}/notes/`, note, { headers: authHeaders });
-    setNotes((prev) => [res.data, ...prev]);
-    setSelectedId(res.data.id);
-    setIsNewUser(false);
-  }, [authHeaders]);
+      setSelectedId(savedNote.note_id);
+      setIsNewUser(false);
+    },
+    [authHeaders],
+  );
 
-  const updateNote = useCallback(async (note_id: string, note: NoteUpdate) => {
-    const res = await axios.put(`${API_BASE_URL}/notes/${note_id}/`, note, { headers: authHeaders });
-    setNotes((prev) => prev.map((n) => n.note_id === note_id ? res.data : n));
-  }, [authHeaders]);
+  const updateNote = useCallback(
+    async (noteId: string, note: NoteUpdate) => {
+      const response = await axios.patch<NoteResponse>(
+        `${API_BASE_URL}/notes/update_note/${encodeURIComponent(noteId)}`,
+        note,
+        { headers: authHeaders },
+      );
 
-  const selectedNote = useMemo(() => notes.find((note) => note.note_id === selectedId), [notes, selectedId]);
+      const updatedNote = response.data;
+
+      setNotes((current) =>
+        current.map((item) =>
+          item.note_id === noteId ? updatedNote : item,
+        ),
+      );
+    },
+    [authHeaders],
+  );
 
   const requestDelete = useCallback((note: NoteResponse) => {
     setDeleteTarget(note);
-  }
+  }, []);
 
-    , []);
   const cancelDelete = useCallback(() => {
     setDeleteTarget(null);
   }, []);
 
   const confirmDelete = useCallback(async () => {
     if (!deleteTarget) return;
-    await axios.delete(`${API_BASE_URL}/notes/${deleteTarget.note_id}/`, { headers: authHeaders });
-    setNotes((prev) => prev.filter((n) => n.note_id !== deleteTarget.note_id));
+
+    const noteId = deleteTarget.note_id;
+
+    await axios.delete(
+      `${API_BASE_URL}/notes/delete_note/${encodeURIComponent(noteId)}`,
+      { headers: authHeaders },
+    );
+
+    setNotes((current) =>
+      current.filter((note) => note.note_id !== noteId),
+    );
+
+    setSelectedId((current) =>
+      current === noteId ? null : current,
+    );
+
+    setIsNewUser(notes.length <= 1);
     setDeleteTarget(null);
-  }, [deleteTarget, authHeaders]);
+  }, [deleteTarget, authHeaders, notes.length]);
+
+  // --------------------------------------------------
+  // User profile
+  // --------------------------------------------------
+
+  const registerUser = useCallback(
+    async (userData: UserCreate) => {
+      const response = await axios.post<UserResponse>(
+        `${API_BASE_URL}/users/`,
+        userData,
+      );
+
+      setProfile(response.data);
+    },
+    [],
+  );
+
+  const updateUser = useCallback(
+    async (userId: number, userData: UserUpdate) => {
+      const response = await axios.put<UserResponse>(
+        `${API_BASE_URL}/users/${userId}`,
+        userData,
+        { headers: authHeaders },
+      );
+
+      setProfile(response.data);
+    },
+    [authHeaders],
+  );
+
+  const deleteAccount = useCallback(
+    async (userId: number) => {
+      await axios.delete(`${API_BASE_URL}/users/${userId}`, {
+        headers: authHeaders,
+      });
+
+      setNotes([]);
+      setProfile(null);
+      setSelectedId(null);
+
+      await signOut({ callbackUrl: "/login" });
+    },
+    [authHeaders],
+  );
+
+  // --------------------------------------------------
+  // SSE quiz generation
+  // --------------------------------------------------
+
+  const cancelQuizGeneration = useCallback(() => {
+    streamControllerRef.current?.abort();
+    streamControllerRef.current = null;
+    activeQuizIdRef.current = null;
+
+    setQuizStatus((current) =>
+      current === "generating" ? "cancelled" : current,
+    );
+  }, []);
+
+  const resetQuizState = useCallback(() => {
+    streamControllerRef.current?.abort();
+    streamControllerRef.current = null;
+    activeQuizIdRef.current = null;
+
+    setQuizStatus("idle");
+    setQuizProgress(EMPTY_PROGRESS);
+    setQuizError(null);
+    setQuizResult(null);
+  }, []);
+
+  const generateQuiz = useCallback(
+    async (noteId: string) => {
+      if (!noteId.trim()) {
+        setQuizError("A note ID is required.");
+        setQuizStatus("error");
+        return;
+      }
+
+      // Avoid accidentally starting the same stream twice.
+      if (
+        activeQuizIdRef.current === noteId &&
+        streamControllerRef.current &&
+        !streamControllerRef.current.signal.aborted
+      ) {
+        return;
+      }
+
+      streamControllerRef.current?.abort();
+
+      const controller = new AbortController();
+
+      streamControllerRef.current = controller;
+      activeQuizIdRef.current = noteId;
+
+      setQuizStatus("generating");
+      setQuizProgress(EMPTY_PROGRESS);
+      setQuizError(null);
+      setQuizResult(null);
+
+      let receivedCompleteEvent = false;
+
+      try {
+        // Browser -> Next.js proxy -> FastAPI POST endpoint.
+        const response = await fetch(
+          `/api/quiz/stream/${encodeURIComponent(noteId)}`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "text/event-stream",
+            },
+            cache: "no-store",
+            credentials: "same-origin",
+            signal: controller.signal,
+          },
+        );
+
+        if (!response.ok) {
+          const body = await response.text();
+
+          let message = body || `Request failed (${response.status}).`;
+
+          try {
+            const parsed = JSON.parse(body) as {
+              detail?: string;
+              message?: string;
+            };
+
+            message = parsed.detail || parsed.message || message;
+          } catch {
+            // The upstream response wasn't JSON.
+          }
+
+          throw new Error(message);
+        }
+
+        if (!response.body) {
+          throw new Error("The server did not return a readable stream.");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        let buffer = "";
+
+        const handleEvent = (block: string) => {
+          let eventName = "message";
+          const dataLines: string[] = [];
+
+          for (const line of block.split(/\r?\n/)) {
+            if (!line || line.startsWith(":")) continue;
+
+            if (line.startsWith("event:")) {
+              eventName = line.slice(6).trim();
+            } else if (line.startsWith("data:")) {
+              dataLines.push(line.slice(5).trimStart());
+            }
+          }
+
+          if (dataLines.length === 0) return;
+
+          const rawData = dataLines.join("\n");
+
+          let data: unknown = rawData;
+
+          try {
+            data = JSON.parse(rawData);
+          } catch {
+            // Preserve non-JSON event data as text.
+          }
+
+          if (eventName === "workflow_update") {
+            const update = data as {
+              node?: string;
+              data?: unknown;
+            };
+
+            if (!update.node) return;
+
+            setQuizProgress((current) => ({
+              node: update.node!,
+              data: update.data ?? null,
+              history: current.history.includes(update.node!)
+                ? current.history
+                : [...current.history, update.node!],
+            }));
+
+            return;
+          }
+
+
+          if (eventName === "complete") {
+            const result = data as QuizGenerationResponse;
+
+            receivedCompleteEvent = true;
+
+            setQuizResult(result);
+            setQuizStatus("completed");
+            setQuizError(null);
+
+            setNotes((current) =>
+              current.map((note) =>
+                note.note_id === result.note_id
+                  ? {
+                    ...note,
+                    quiz: result.generated_questions,
+                    analysis_result: result.analysis_result,
+                    summary_result: result.summary_result,
+                    key_concepts: result.key_concepts,
+                  }
+                  : note,
+              ),
+            );
+
+            return;
+          }
+
+
+          if (eventName === "error") {
+            throw new Error(formatSseError(data));
+          }
+        };
+
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) {
+            buffer += decoder.decode();
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // SSE events are separated by a blank line.
+          let separatorIndex = buffer.search(/\r?\n\r?\n/);
+
+          while (separatorIndex !== -1) {
+            const block = buffer.slice(0, separatorIndex);
+
+            const separator = buffer.match(/\r?\n\r?\n/);
+            const separatorLength = separator?.[0].length ?? 2;
+
+            buffer = buffer.slice(separatorIndex + separatorLength);
+
+            handleEvent(block);
+
+            separatorIndex = buffer.search(/\r?\n\r?\n/);
+          }
+        }
+
+        // Process a final event even if the stream ended without a blank line.
+        if (buffer.trim()) {
+          handleEvent(buffer);
+        }
+
+        if (!receivedCompleteEvent && !controller.signal.aborted) {
+          throw new Error(
+            "The stream ended before quiz generation completed.",
+          );
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return;
+
+        const message = getErrorMessage(error);
+
+        setQuizError(message);
+        setQuizStatus("error");
+      } finally {
+        if (streamControllerRef.current === controller) {
+          streamControllerRef.current = null;
+          activeQuizIdRef.current = null;
+        }
+      }
+    },
+    [],
+  );
+
+  // Abort an active stream when the authenticated session disappears.
+  useEffect(() => {
+    if (sessionStatus === "unauthenticated") {
+      streamControllerRef.current?.abort();
+      streamControllerRef.current = null;
+      activeQuizIdRef.current = null;
+    }
+  }, [sessionStatus]);
+
+  // --------------------------------------------------
+  // OpenAI-key modal and AI action
+  // --------------------------------------------------
 
   const openApiModal = useCallback(() => {
     setApiModalOpen(true);
@@ -164,60 +619,103 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setApiModalOpen(false);
   }, []);
 
-  const requestAi = useCallback((noteId: string) => {
-    // Implement AI request logic here
-    console.log(`Requesting AI for note ID: ${noteId}`);
-  }, []);
-  // const saveNote = useCallback((note: NoteCreate) => {
-  //   setNotes((prev) => [note, ...prev.filter((n) => n.note_id !== note.note_id)]);
-  //   setSelectedId(note.note_id);
-  //   setIsNewUser(false);
-  // }, []);
+  const requestAi = useCallback(
+    (noteId: string) => {
+      if (!apiConfigured) {
+        setApiModalOpen(true);
+        return;
+      }
 
-  // const confirmDelete = useCallback(() => {
-  //   if (!deleteTarget) return;
-  //   setNotes((prev) => prev.filter((n) => n.note_id !== deleteTarget.note_id));
-  //   setDeleteTarget(null);
-  //   router.push(routes.notes);
-  // }, [deleteTarget, router]);
+      void generateQuiz(noteId);
+    },
+    [apiConfigured, generateQuiz],
+  );
 
-  // const registerUser = useCallback((newProfile: UserCreate) => {
-  //   setProfile(newProfile);
-  //   setIsNewUser(true);
-  //   router.push(routes.dashboard);
-  // }, [router]);
+  const value = useMemo<AppContextValue>(
+    () => ({
+      token,
+      logout,
 
-  // const deleteAccount = useCallback(() => {
-  //   setNotes([]);
-  //   setApiConfigured(false);
-  //   setIsNewUser(true);
-  //   router.push(routes.login);
-  // }, [router]);
+      notes,
+      getNote,
+      saveNote,
+      updateNote,
+      selectedNote,
+      selectNote,
 
-  // const requestAi = useCallback(() => {
-  //   if (apiConfigured) router.push(routes.quizGenerating);
-  //   else setApiModalOpen(true);
-  // }, [apiConfigured, router]);
+      deleteTarget,
+      requestDelete,
+      cancelDelete,
+      confirmDelete,
 
-  // --- Compile Context value ---
-  const value = useMemo(() => ({
-    token, logout,
-    notes, getNote, saveNote, updateNote, selectedNote, selectNote,
-    deleteTarget, requestDelete, cancelDelete, confirmDelete,
-    isNewUser, profile, setProfile, registerUser, updateUser, deleteAccount,
-    apiConfigured, setApiConfigured, apiModalOpen, openApiModal, closeApiModal, requestAi
-  }), [
-    token, logout, notes, getNote, saveNote, updateNote, selectedNote, selectNote,
-    deleteTarget, requestDelete, cancelDelete, confirmDelete, isNewUser,
-    profile, registerUser, updateUser, deleteAccount,
-    apiConfigured, apiModalOpen, openApiModal, closeApiModal, requestAi
-  ]);
+      isNewUser,
+      profile,
+      setProfile,
+      registerUser,
+      updateUser,
+      deleteAccount,
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+      generateQuiz,
+      cancelQuizGeneration,
+      quizStatus,
+      quizProgress,
+      quizError,
+      quizResult,
+      resetQuizState,
+
+      apiConfigured,
+      setApiConfigured,
+      apiModalOpen,
+      openApiModal,
+      closeApiModal,
+      requestAi,
+    }),
+    [
+      token,
+      logout,
+      notes,
+      getNote,
+      saveNote,
+      updateNote,
+      selectedNote,
+      selectNote,
+      deleteTarget,
+      requestDelete,
+      cancelDelete,
+      confirmDelete,
+      isNewUser,
+      profile,
+      registerUser,
+      updateUser,
+      deleteAccount,
+      generateQuiz,
+      cancelQuizGeneration,
+      quizStatus,
+      quizProgress,
+      quizError,
+      quizResult,
+      resetQuizState,
+      apiConfigured,
+      apiModalOpen,
+      openApiModal,
+      closeApiModal,
+      requestAi,
+    ],
+  );
+
+  return (
+    <AppContext.Provider value={value}>
+      {children}
+    </AppContext.Provider>
+  );
 }
 
 export function useApp() {
   const context = useContext(AppContext);
-  if (!context) throw new Error("useApp must be used inside <AppProvider>");
+
+  if (!context) {
+    throw new Error("useApp must be used inside <AppProvider>");
+  }
+
   return context;
 }

@@ -37,7 +37,11 @@ export function QuizResults() {
             <div>
               <span className={cn("eyebrow")}>Analysis summary</span>
               <h2>Aerobic energy production</h2>
-              <p>This note explains how cells convert glucose into ATP through three connected stages: glycolysis, the citric acid cycle, and oxidative phosphorylation. It emphasizes energy carriers, location, and oxygen’s essential role.</p>
+              <p>{selectedNote?.analysis_result?.critical_insights}</p>
+              <p>{selectedNote?.analysis_result?.interconnections}</p>
+              <p>{selectedNote?.analysis_result?.key_points}</p>
+              <p>{selectedNote?.analysis_result?.main_theme}</p>
+              <p>{selectedNote?.analysis_result?.practical_applications}</p>
             </div>
           </section>
 
@@ -49,7 +53,7 @@ export function QuizResults() {
               </div>
               <Badge tone="mint">10 questions</Badge>
             </div>
-            {quizQuestions.map((q, i) => (
+            {selectedNote?.quiz?.map((q, i) => (
               <div className={cn("question")} key={q}>
                 <span>{String(i + 1).padStart(2, "0")}</span>
                 <p>{q}</p>
@@ -64,13 +68,13 @@ export function QuizResults() {
             <span className={cn("eyebrow")}>Key concepts</span>
             <h3>What to review</h3>
             <div className={cn("concepts")}>
-              {keyConcepts.map((x) => <span key={x}>{x}</span>)}
+              {selectedNote?.key_concepts?.map((x) => <span key={x}>{x}</span>)}
             </div>
           </section>
           <section className={cn("panel generated-summary")}>
             <span className={cn("eyebrow")}>Generated summary</span>
             <h3>In a nutshell</h3>
-            <p>Glucose is gradually oxidized to transfer energy into ATP. Glycolysis begins the process; the citric acid cycle loads electron carriers; and the electron transport chain uses those electrons to power most ATP production.</p>
+            <p>{selectedNote?.summary_result}</p>
           </section>
           <div className={cn("quiz-actions-card")}>
             <Icon name="book" />
