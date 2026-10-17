@@ -13,7 +13,7 @@ import { SubjectsPanel } from "./subjects-panel";
 
 export function DashboardView() {
   const router = useRouter();
-  const { notes, profile, isNewUser, requestAi, apiConfigured } = useApp();
+  const { notes, selectedNote, profile, isNewUser, requestAi, apiConfigured } = useApp();
 
   if (isNewUser) return <EmptyDashboard />;
 
@@ -21,10 +21,10 @@ export function DashboardView() {
     <div className={cn("page")}>
       <PageHeading
         eyebrow="Monday, September 23"
-        title={`Good morning, ${profile.name.split(" ")[0]}`}
+        title={`Good morning, ${profile?.user_name.split(" ")[0]}`}
         description="Here’s what’s happening in your study space."
       >
-        <Button variant="secondary" icon={apiConfigured ? "sparkle" : "lock"} onClick={requestAi}>Generate quiz</Button>
+        <Button variant="secondary" icon={apiConfigured ? "sparkle" : "lock"} onClick={()=> requestAi(selectedNote?.note_id || "")}>Generate quiz</Button>
         <Button icon="plus" onClick={() => router.push(routes.newNote)}>Create note</Button>
       </PageHeading>
 

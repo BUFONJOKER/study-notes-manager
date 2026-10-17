@@ -1,32 +1,33 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent} from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/app-context";
 import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { Button, Icon, PasswordInput } from "@/components/ui";
 
-type FormState = { name: string; username: string; email: string; password: string; confirm: string };
+type FormState = { name: string; user_name: string;  password: string; confirm: string };
 
 export function RegisterForm() {
   const router = useRouter();
   const { registerUser } = useApp();
-  const [form, setForm] = useState<FormState>({ name: "", username: "", email: "", password: "", confirm: "" });
+  const [form, setForm] = useState<FormState>({ name: "", user_name: "", password: "", confirm: "" });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const update = (field: keyof FormState, value: string) => setForm((current) => ({ ...current, [field]: value }));
-  const validEmail = /\S+@\S+\.\S+/.test(form.email);
 
-  const submit = (event: FormEvent) => {
+
+
+  const submit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitted(true);
-    if (!form.name.trim() || form.username.length < 3 || !validEmail || form.password.length < 8 || form.password !== form.confirm) return;
+    if (!form.name.trim() || form.user_name.length < 3 || form.password.length < 8 || form.password !== form.confirm) return;
     setLoading(true);
     window.setTimeout(() => {
       setLoading(false);
-      registerUser({ name: form.name, username: form.username, email: form.email });
+      registerUser({user_name: form.user_name, password: form.password });
     }, 900);
   };
 
@@ -40,33 +41,19 @@ export function RegisterForm() {
       </div>
       <form className={cn("auth-form")} onSubmit={submit}>
         <label className={cn("auth-field")}>
-          <span>Full name</span>
-          <div className={cn(submitted && !form.name.trim() ? "invalid" : "")}>
-            <Icon name="user" size={18} />
-            <input value={form.name} onChange={(event) => update("name", event.target.value)} placeholder="Alex Morgan" autoComplete="name" />
-          </div>
-        </label>
-        <label className={cn("auth-field")}>
-          <span>Username</span>
-          <div className={cn(submitted && form.username.length < 3 ? "invalid" : "")}>
+          <span>user_name</span>
+          <div className={cn(submitted && form.user_name.length < 3 ? "invalid" : "")}>
             <Icon name="user" size={18} />
             <input
-              value={form.username}
-              onChange={(event) => update("username", event.target.value.replace(/\s/g, "").toLowerCase())}
+              value={form.user_name}
+              onChange={(event) => update("user_name", event.target.value.replace(/\s/g, "").toLowerCase())}
               placeholder="alexm"
-              autoComplete="username"
+              autoComplete="user_name"
             />
           </div>
-          {submitted && form.username.length < 3 && <small className={cn("field-error")}>Use at least 3 characters</small>}
+          {submitted && form.user_name.length < 3 && <small className={cn("field-error")}>Use at least 3 characters</small>}
         </label>
-        <label className={cn("auth-field")}>
-          <span>Email address</span>
-          <div className={cn(submitted && !validEmail ? "invalid" : "")}>
-            <Icon name="notes" size={18} />
-            <input type="email" value={form.email} onChange={(event) => update("email", event.target.value)} placeholder="alex@example.com" autoComplete="email" />
-          </div>
-          {submitted && !validEmail && <small className={cn("field-error")}>Enter a valid email address</small>}
-        </label>
+
         <PasswordInput
           label="Password"
           value={form.password}

@@ -13,7 +13,7 @@ export function QuizResults() {
 
   return (
     <div className={cn("page quiz-page")}>
-      <BackLink href={selectedNote ? routes.note(selectedNote.id) : routes.notes}>Return to note</BackLink>
+      <BackLink href={selectedNote ? routes.note(selectedNote.note_id) : routes.notes}>Return to note</BackLink>
       <PageHeading
         eyebrow="Quiz generated successfully"
         title="Cellular Respiration & Energy"
@@ -27,7 +27,7 @@ export function QuizResults() {
           {copied ? "Copied" : "Copy all"}
         </Button>
         <Button variant="secondary" icon="download">Export</Button>
-        <Button icon={apiConfigured ? "refresh" : "lock"} onClick={requestAi}>Regenerate</Button>
+        <Button icon={apiConfigured ? "refresh" : "lock"} onClick={() => selectedNote?.note_id && requestAi(selectedNote.note_id)}>Regenerate</Button>
       </PageHeading>
 
       <div className={cn("quiz-layout")}>

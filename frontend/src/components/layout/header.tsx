@@ -33,7 +33,7 @@ export function Header({ title, onMenu }: { title: string; onMenu: () => void })
         </label>
         <Button icon="plus" onClick={() => router.push(routes.newNote)}>New note</Button>
         <button className={cn("avatar mobile-avatar")} onClick={() => router.push(routes.account)}>
-          {getInitials(profile.name)}
+          {getInitials(profile?.user_name)}
         </button>
       </div>
     </header>

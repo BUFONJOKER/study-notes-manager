@@ -12,17 +12,18 @@ type AppContextValue = {
   logout: () => void;
   // Notes data state management
   notes: NoteResponse[];
-  getNote: (id: number) => NoteResponse | undefined;
-  saveNote: (note: Omit<NoteCreate, "user_id">) => Promise<void>;
+  getNote: (user_id: number) => NoteResponse | undefined;
+  saveNote: (note: NoteCreate) => Promise<void>;
   updateNote: (id: string, note: NoteUpdate) => Promise<void>;
   selectedNote: NoteResponse | undefined;
-  selectNote: (id: string) => void;
+  selectNote: (note_id: string) => void;
   // delete-note modal handling
   deleteTarget: NoteResponse | null;
   requestDelete: (note: NoteResponse) => void;
   cancelDelete: () => void;
   confirmDelete: () => Promise<void>;
   // user settings
+  isNewUser: boolean;
   profile: UserResponse | null;
   setProfile: (profile: UserResponse | null) => void;
   deleteAccount: (userId: number) => Promise<void>;
@@ -54,6 +55,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [notes, setNotes] = useState<NoteResponse[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<NoteResponse | null>(null);
+  const [isNewUser, setIsNewUser] = useState<boolean>(false);
   const [profile, setProfile] = useState<UserResponse | null>(null);
   const [apiConfigured, setApiConfigured] = useState<boolean>(false);
   const [apiModalOpen, setApiModalOpen] = useState<boolean>(false);
@@ -95,9 +97,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Profile Operations
+
   const registerUser = useCallback(async (userData: UserCreate) => {
     const res = await axios.post(`${API_BASE_URL}/users/`, userData);
     setProfile(res.data);
+    setIsNewUser(true);
   }, []);
 
   const updateUser = useCallback(async (userId: number, userData: UserUpdate) => {
@@ -110,6 +114,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setProfile(null);
     setNotes([]);
     setApiConfigured(false);
+    setIsNewUser(true);
   }, []);
 
   // Note Operations
@@ -117,14 +122,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return notes.find((note) => note.user_id === user_id);
   }, [notes]);
 
-  const selectNote = useCallback((noteId: string) => {
-    setSelectedId(noteId);
+  const selectNote = useCallback((note_id: string) => {
+    setSelectedId(note_id);
   }, []);
 
-  const saveNote = useCallback(async (note: Omit<NoteCreate, "user_id">) => {
+  const saveNote = useCallback(async (note: NoteCreate) => {
     const res = await axios.post(`${API_BASE_URL}/notes/`, note, { headers: authHeaders });
     setNotes((prev) => [res.data, ...prev]);
     setSelectedId(res.data.id);
+    setIsNewUser(false);
   }, [authHeaders]);
 
   const updateNote = useCallback(async (note_id: string, note: NoteUpdate) => {
@@ -198,11 +204,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     token, logout,
     notes, getNote, saveNote, updateNote, selectedNote, selectNote,
     deleteTarget, requestDelete, cancelDelete, confirmDelete,
-    profile, setProfile, registerUser, updateUser, deleteAccount,
+    isNewUser, profile, setProfile, registerUser, updateUser, deleteAccount,
     apiConfigured, setApiConfigured, apiModalOpen, openApiModal, closeApiModal, requestAi
   }), [
     token, logout, notes, getNote, saveNote, updateNote, selectedNote, selectNote,
-    deleteTarget, requestDelete, cancelDelete, confirmDelete,
+    deleteTarget, requestDelete, cancelDelete, confirmDelete, isNewUser,
     profile, registerUser, updateUser, deleteAccount,
     apiConfigured, apiModalOpen, openApiModal, closeApiModal, requestAi
   ]);

@@ -28,7 +28,7 @@ export function QuizProgress() {
 
   return (
     <div className={cn("page progress-page")}>
-      <BackLink href={selectedNote ? routes.note(selectedNote.id) : routes.notes}>Cancel and return to note</BackLink>
+      <BackLink href={selectedNote ? routes.note(selectedNote.note_id) : routes.notes}>Cancel and return to note</BackLink>
       <div className={cn("progress-card panel")}>
         <div className={cn("orb")}>
           <Icon name="sparkle" size={31} />

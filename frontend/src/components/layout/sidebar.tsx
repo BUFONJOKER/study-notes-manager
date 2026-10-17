@@ -57,10 +57,10 @@ export function Sidebar() {
       </div>
 
       <button className={cn("profile")} onClick={() => router.push(routes.account)}>
-        <span className={cn("avatar")}>{getInitials(profile.name)}</span>
+        <span className={cn("avatar")}>{getInitials(profile?.user_name)}</span>
         <span>
-          <strong>{profile.name}</strong>
-          <small>@{profile.username}</small>
+          <strong>{profile?.user_name}</strong>
+          <small>@{profile?.user_name}</small>
         </span>
         <Icon name="more" />
       </button>

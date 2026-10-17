@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { Badge, Icon } from "@/components/ui";
-import type { Note } from "@/types/notes";
+import type { NoteResponse } from "@/types/notes";
 
-export function RecentNotesPanel({ notes }: { notes: Note[] }) {
+export function RecentNotesPanel({ notes }: { notes: NoteResponse[] }) {
   const router = useRouter();
 
   return (
@@ -22,18 +22,9 @@ export function RecentNotesPanel({ notes }: { notes: Note[] }) {
       </div>
       <div className={cn("recent-list")}>
         {notes.map((note) => (
-          <button className={cn("recent-row")} key={note.id} onClick={() => router.push(routes.note(note.id))}>
-            <span className={cn(`note-glyph ${note.tone}`)}>
-              <Icon name="notes" size={20} />
-            </span>
-            <span className={cn("recent-main")}>
-              <strong>{note.title}</strong>
-              <span>
-                <Badge tone={note.tone}>{note.subject}</Badge>
-                <small>{note.updated}</small>
-              </span>
-            </span>
-            {note.hasQuiz && (
+          <button className={cn("recent-row")} key={note.note_id} onClick={() => router.push(routes.note(note.note_id))}>
+
+            {note.quiz && (
               <span className={cn("quiz-ready")}>
                 <Icon name="sparkle" size={14} /> Quiz ready
               </span>

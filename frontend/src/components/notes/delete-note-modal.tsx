@@ -2,10 +2,10 @@
 
 import { cn } from "@/lib/cn";
 import { Button, Icon, Modal } from "@/components/ui";
-import type { Note } from "@/types/notes";
+import type { NoteResponse } from "@/types/notes";
 
 type DeleteNoteModalProps = {
-  note: Note;
+  note: NoteResponse;
   close: () => void;
   confirm: () => void;
 };

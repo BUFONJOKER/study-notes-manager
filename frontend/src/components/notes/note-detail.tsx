@@ -8,14 +8,14 @@ import { routes } from "@/lib/routes";
 import { BackLink, Badge, Button, Icon } from "@/components/ui";
 import { NoteNotFound } from "./note-not-found";
 
-export function NoteDetail({ id }: { id: string }) {
+export function NoteDetail({ note_id }: { note_id: string }) {
   const router = useRouter();
-  const { getNote, selectNote, requestDelete, requestAi, apiConfigured } = useApp();
-  const note = getNote(id);
+  const { getNote, selectNote,selectedNote, requestDelete, requestAi, apiConfigured } = useApp();
+  const note = getNote(Number(note_id));
 
   useEffect(() => {
-    selectNote(id);
-  }, [id, selectNote]);
+    selectNote(note_id);
+  }, [note_id, selectNote]);
 
   if (!note) return <NoteNotFound />;
 
@@ -24,18 +24,18 @@ export function NoteDetail({ id }: { id: string }) {
       <BackLink href={routes.notes}>Back to all notes</BackLink>
       <div className={cn("detail-heading")}>
         <div>
-          <Badge tone={note.tone}>{note.subject}</Badge>
+          <Badge>{note.subject}</Badge>
           <h1>{note.title}</h1>
           <div className={cn("detail-meta")}>
-            <code>{note.id}</code>
-            <span>Created {note.created}</span>
-            <span>Updated {note.updated}</span>
+            <code>{note.note_id}</code>
+            <span>Created {note.created_at}</span>
+            <span>Updated {note.updated_at}</span>
           </div>
         </div>
         <div className={cn("detail-actions")}>
-          <Button variant="secondary" icon="edit" onClick={() => router.push(routes.editNote(note.id))}>Edit</Button>
+          <Button variant="secondary" icon="edit" onClick={() => router.push(routes.editNote(note.note_id))}>Edit</Button>
           <Button variant="secondary" icon="trash" onClick={() => requestDelete(note)}>Delete</Button>
-          <Button icon={apiConfigured ? "sparkle" : "lock"} onClick={requestAi}>Generate quiz</Button>
+          <Button icon={apiConfigured ? "sparkle" : "lock"} onClick={()=> requestAi(selectedNote?.note_id || "")}>Generate quiz</Button>
         </div>
       </div>
 
@@ -61,7 +61,7 @@ export function NoteDetail({ id }: { id: string }) {
               <strong>{apiConfigured ? "Ready to check your understanding?" : "OpenAI API key required"}</strong>
               <p>{apiConfigured ? "Generate practice questions from this note in under a minute." : "Configure a valid key before using AI study tools."}</p>
             </div>
-            <Button variant="secondary" onClick={requestAi}>{apiConfigured ? "Create quiz" : "Set up AI"}</Button>
+            <Button variant="secondary"  onClick={()=> requestAi(selectedNote?.note_id || "")}>{apiConfigured ? "Create quiz" : "Set up AI"}</Button>
           </div>
         </article>
 
