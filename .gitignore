@@ -146,3 +146,6 @@ pid
 
 # also includes docs/ui folder
 docs/ui/**
+
+# iclude todo.ts file frontend\src\context\todo.ts
+frontend/src/context/todo.ts
