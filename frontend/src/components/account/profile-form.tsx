@@ -1,20 +1,48 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type SubmitEvent } from "react";
 import { useApp } from "@/context/app-context";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui";
 
 export function ProfileForm({ onSaved }: { onSaved: (message: string) => void }) {
-  const { profile, setProfile } = useApp();
-  const [form, setForm] = useState(profile);
+  const { profile, updateUser } = useApp();
+  const [userName, setUserName] = useState(profile?.user_name ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = (event: FormEvent) => {
+
+  useEffect(() => {
+    setUserName(profile?.user_name ?? "");
+  }, [profile]);
+
+  const submit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setProfile(form);
-    onSaved("Profile details updated successfully.");
+    if (!profile) {
+      setError("Your profile is not available.");
+      return;
+    }
+    const trimmedName = userName.trim();
+    if (!trimmedName) {
+      setError("Username cannot be empty.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await updateUser(profile.user_id, {
+        user_name: trimmedName,
+      });
+      onSaved("Profile details updated successfully.");
+    } catch {
+      setError("Failed to update profile. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
-
+  if (!profile) {
+    return <p>Loading profile...</p>;
+  }
   return (
     <form className={cn("account-section")} onSubmit={submit}>
       <div className="mb-5">
@@ -22,22 +50,18 @@ export function ProfileForm({ onSaved }: { onSaved: (message: string) => void })
         <p>Update the details associated with your account.</p>
       </div>
       <div className={cn("form-grid")}>
-        <label>
-          <span>Full name</span>
-          <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
-        </label>
+
         <label>
           <span>Username</span>
-          <input value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value.replace(/\s/g, "").toLowerCase() })} />
+          <input value={userName} onChange={(event) => setUserName(event.target.value.replace(/\s/g, "").toLowerCase())} required disabled={saving} />
           <small>Your unique public identifier</small>
         </label>
-        <label className={cn("span-two")}>
-          <span>Email address</span>
-          <input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
-        </label>
       </div>
+      {error && <p role="alert">{error}</p>}
       <div className="mt-5 flex justify-end">
-        <Button type="submit" icon="check">Save profile</Button>
+        <Button type="submit" icon="check" disabled={saving}>
+          {saving ? "Saving..." : "Save profile"}
+        </Button>
       </div>
     </form>
   );

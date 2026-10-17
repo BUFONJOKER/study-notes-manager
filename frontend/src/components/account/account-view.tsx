@@ -49,7 +49,7 @@ export function AccountView() {
           <button onClick={handleLogOut}><Icon name="arrow" size={17} />Sign out</button>
         </aside>
         <div className={cn("account-panel")}>
-          <ProfilePhotoSection name={profile.name} />
+          <ProfilePhotoSection name={profile?.user_name || 'User'} />
           <ProfileForm onSaved={flash} />
           <PasswordForm onSaved={flash} />
         </div>

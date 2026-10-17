@@ -25,6 +25,11 @@ type AppContextValue = {
   // user settings
   profile: UserResponse | null;
   setProfile: (profile: UserResponse | null) => void;
+  deleteAccount: (userId: number) => Promise<void>;
+  registerUser: (userData: UserCreate) => Promise<void>;
+  updateUser: (userId: number, userData: UserUpdate) => Promise<void>;
+  // AI request handling
+
   // AI Keys settings configuration
   apiConfigured: boolean;
   setApiConfigured: (value: boolean) => void;
@@ -69,10 +74,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     // Set initial user info from NextAuth profile baseline data
-    if (session?.user?.name) {
+    if (session?.user?.id && session.user.name) {
       setProfile({
+        user_id: Number(session.user.id),
         user_name: session.user.name,
-        user_id: 0, // Fallback if user_id is fetched via dynamic profile endpoints later
       });
     }
 
@@ -133,7 +138,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setDeleteTarget(note);
   }
 
-, []);
+    , []);
   const cancelDelete = useCallback(() => {
     setDeleteTarget(null);
   }, []);

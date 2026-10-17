@@ -1,63 +1,127 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+
+import NextAuth, { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
 
 export const authOptions: NextAuthOptions = {
-    providers: [
-        CredentialsProvider({
-            name: "FastApi Login",
-            credentials: {
-                username: { label: "Username", type: "text", placeholder: "Enter your username" },
-                password: { label: "Password", type: "password", placeholder: "Enter your password" },
-            },
-            async authorize(credentials) {
-                if (!credentials?.username || !credentials?.password) return null;
+  providers: [
+    CredentialsProvider({
+      name: "FastApi Login",
+      credentials: {
+        username: {
+          label: "Username",
+          type: "text",
+          placeholder: "Enter your username",
+        },
+        password: {
+          label: "Password",
+          type: "password",
+        },
+      },
 
-                // 1. Convert to url-encoded payload for FastAPI OAuth2 specification
-                const formData = new URLSearchParams();
-                formData.append("username", credentials.username);
-                formData.append("password", credentials.password);
+      async authorize(credentials) {
+        if (!credentials?.username || !credentials?.password) {
+          return null;
+        }
 
-                try {
-                    // 2. Send a POST request to the FastAPI login endpoint
-                    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/login`, formData, {
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded",
-                        },
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-                    });
+        if (!baseUrl) {
+          throw new Error("API URL is not configured.");
+        }
 
+        const formData = new URLSearchParams();
+        formData.append("username", credentials.username);
+        formData.append("password", credentials.password);
 
+        try {
+          // 1. Authenticate with FastAPI.
+          const loginResponse = await axios.post(
+            `${baseUrl}/users/login`,
+            formData,
+            {
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+            }
+          );
 
-                    // 3. Axios maps JSON automatically under response.data
-                    if (response.status === 200 && response.data.access_token) {
-                        return {
-                            id: credentials.username,
-                            name: credentials.username,
-                            accessToken: response.data.access_token, // injecting fastapi bearer token into the user object
-                        };
-                    }
-                    return null; // Return null if the credentials are invalid
-                } catch (error: any) {
-                    console.error("Authentication error:", error);
+          const accessToken: string = loginResponse.data.access_token;
 
-                    // 3. Forward the thrown error, or catch network connection issues
-                    throw new Error(error.message || "Failed to connect to authentication server.");
-                }
-            },
-        }),
-    ],
-    callbacks: {
+          if (!accessToken) {
+            return null;
+          }
+
+          // 2. Fetch the actual authenticated user's profile.
+          const profileResponse = await axios.get(
+            `${baseUrl}/users/me`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+
+          const profile = profileResponse.data;
+
+          // 3. Return real user information to NextAuth.
+          return {
+            id: String(profile.user_id),
+            user_id: profile.user_id,
+            user_name: profile.user_name,
+            name: profile.user_name,
+            accessToken,
+          };
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 400 ||
+              error.response?.status === 422
+            ) {
+              return null;
+            }
+          }
+
+          console.error(
+            "Authentication error:",
+            axios.isAxiosError(error)
+              ? error.message
+              : "Unexpected authentication error"
+          );
+
+          throw new Error("Failed to authenticate with the server.");
+        }
+      },
+    }),
+  ],
+
+  callbacks: {
     async jwt({ token, user }) {
-      if (user) token.accessToken = user.accessToken;
+      if (user) {
+        token.user_id = user.user_id;
+        token.user_name = user.user_name;
+        token.accessToken = user.accessToken;
+      }
+
       return token;
     },
+
     async session({ session, token }) {
+      if (session.user) {
+        session.user.id = String(token.user_id);
+        session.user.name = token.user_name;
+      }
+
       session.accessToken = token.accessToken;
       return session;
     },
   },
-  pages: { signIn: "/login" },
+
+  pages: {
+    signIn: "/login",
+  },
+
   secret: process.env.NEXTAUTH_SECRET,
 };
 
