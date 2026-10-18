@@ -12,7 +12,7 @@ function formatNodeName(node: string): string {
     .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
-export default function QuizProgress() {
+export function QuizProgress() {
   const params = useParams<{ noteId: string }>();
   const router = useRouter();
 

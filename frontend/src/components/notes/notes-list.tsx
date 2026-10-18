@@ -22,7 +22,7 @@ export function NotesList() {
       notes.filter(
         (n) =>
           (subject === ALL_SUBJECTS || n.subject === subject) &&
-          `${n.title} ${n.subject} ${n.id}`.toLowerCase().includes(query.toLowerCase()),
+          `${n.title} ${n.subject} ${n.note_id}`.toLowerCase().includes(query.toLowerCase()),
       ),
     [notes, query, subject],
   );
@@ -63,7 +63,7 @@ export function NotesList() {
             <span>Note ID</span>
             <span>Actions</span>
           </div>
-          {visible.map((note) => <NoteRow key={note.id} note={note} />)}
+          {visible.map((note) => <NoteRow key={note.note_id} note={note} />)}
         </div>
       ) : (
         <div className={cn("empty panel")}>

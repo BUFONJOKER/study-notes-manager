@@ -2,7 +2,6 @@
 import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import axios from "axios";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +36,7 @@ export async function GET(
   try {
     // Your FastAPI endpoint is POST, even though this proxy is GET.
     const upstream = await fetch(
-      `${backendUrl.replace(/\/+$/, "")}/quiz_generation/${encodeURIComponent(noteId)}`,
+      `${backendUrl.replace(/\/+$/, "")}/notes/quiz_generation/${encodeURIComponent(noteId)}`,
       {
         method: "POST",
         headers: {
