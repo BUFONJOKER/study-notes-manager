@@ -126,8 +126,7 @@ export function AppProvider({
   const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
 
-  const token =
-    (session as { accessToken?: string } | null)?.accessToken ?? null;
+  const token = session?.accessToken ?? null;
 
   const [notes, setNotes] = useState<NoteResponse[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);

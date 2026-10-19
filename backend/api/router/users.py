@@ -83,10 +83,19 @@ async def get_me(
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     """Return the currently authenticated user."""
-    return UserResponse(
-        user_id=current_user.user_id,
-        user_name=current_user.user_name,
-    )
+
+    try:
+        user = UserResponse(
+                user_id=current_user.user_id,
+                user_name=current_user.user_name,
+            )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving user data: {str(e)}",
+        )
+
+    return user
 
 
 # --- Get Single User ---

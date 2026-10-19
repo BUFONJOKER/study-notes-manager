@@ -24,7 +24,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
 
         if (!baseUrl) {
           throw new Error("API URL is not configured.");
@@ -116,6 +116,10 @@ export const authOptions: NextAuthOptions = {
       session.accessToken = token.accessToken;
       return session;
     },
+  },
+
+  session: {
+    strategy: "jwt",
   },
 
   pages: {
