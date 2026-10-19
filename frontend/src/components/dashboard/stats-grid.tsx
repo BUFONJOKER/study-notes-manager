@@ -9,12 +9,12 @@ type Stat = {
   tone: "green" | "gold" | "purple" | "blue";
 };
 
-export function StatsGrid({ totalNotes }: { totalNotes: number }) {
+export function StatsGrid({ totalNotes, subjects, generatedQuizzes, recentlyUpdated }: { totalNotes: number; subjects: number; generatedQuizzes: number; recentlyUpdated: number }) {
   const stats: Stat[] = [
     { label: "Total notes", value: totalNotes, note: <><b>+3</b> this month</>, icon: "notes", tone: "green" },
-    { label: "Subjects", value: 5, note: "Across this semester", icon: "book", tone: "gold" },
-    { label: "Generated quizzes", value: 8, note: <><b>+2</b> this week</>, icon: "sparkle", tone: "purple" },
-    { label: "Recently updated", value: 4, note: "In the last 7 days", icon: "clock", tone: "blue" },
+    { label: "Subjects", value: subjects, note: "Across this semester", icon: "book", tone: "gold" },
+    { label: "Generated quizzes", value: generatedQuizzes, note: <><b>+2</b> this week</>, icon: "sparkle", tone: "purple" },
+    { label: "Recently updated", value: recentlyUpdated, note: "In the last 7 days", icon: "clock", tone: "blue" },
   ];
 
   return (

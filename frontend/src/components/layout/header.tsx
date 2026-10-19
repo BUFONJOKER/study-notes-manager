@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { getInitials } from "@/lib/utils";
 import { Brand, Button, Icon } from "@/components/ui";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Header({ title, onMenu }: { title: string; onMenu: () => void }) {
   const router = useRouter();
@@ -21,6 +22,7 @@ export function Header({ title, onMenu }: { title: string; onMenu: () => void })
       </div>
       <span className={cn("topbar-title")}>{title}</span>
       <div className={cn("top-actions")}>
+        {/* <ThemeToggle /> */}
         <button className={cn(`api-status ${apiConfigured ? "ready" : ""}`)} onClick={openApiModal}>
           <i />
           <Icon name={apiConfigured ? "check" : "lock"} size={14} />

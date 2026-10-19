@@ -1,26 +1,53 @@
+
 import type { Metadata } from "next";
 import { Inter, Newsreader } from "next/font/google";
 import { AppProvider } from "@/context/app-context";
-import "./globals.css";
 import AuthProvider from "@/components/SessionProvider";
+import { ThemeProvider } from "next-themes";
+import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const newsreader = Newsreader({ subsets: ["latin"], variable: "--font-newsreader", display: "swap" });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-newsreader",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: { default: "Noteflow", template: "%s · Noteflow" },
   description: "Study workspace: organize notes and generate practice quizzes.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className={`${inter.variable} ${newsreader.variable}`} data-scroll-behavior="smooth">
-      <body>
-
-        <AuthProvider>
-          <AppProvider>{children}</AppProvider>
-        </AuthProvider>
-
+    <html
+      lang="en"
+      className={`${inter.variable} ${newsreader.variable}`}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
+      <body className="bg-[#FAF8F5] text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <AppProvider>
+              {children}
+            </AppProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

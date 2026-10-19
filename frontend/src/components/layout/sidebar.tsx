@@ -12,8 +12,13 @@ import { Brand, Icon } from "@/components/ui";
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { profile, apiConfigured, openApiModal } = useApp();
+  const { profile, apiConfigured, openApiModal, notes } = useApp();
   const nav = getNavState(pathname);
+
+  const subjectCounts = subjects.map((subject) => {
+    const count = notes.filter((note) => note.subject === subject.name).length;
+    return { ...subject, notes: count };
+  });
 
   return (
     <aside className={cn("sidebar")}>
@@ -26,17 +31,18 @@ export function Sidebar() {
         <button className={cn(nav.notes ? "active" : "")} onClick={() => router.push(routes.notes)}>
           <Icon name="notes" />
           <span>All notes</span>
-          <span className={cn("nav-count")}>12</span>
+          <span className={cn("nav-count")}>{notes.length}</span>
         </button>
         <button className={cn(nav.quiz ? "active" : "")} onClick={() => router.push(routes.quiz)}>
           <Icon name="sparkle" />
-          <span>Quiz library</span>
+          <span>Quiz library </span>
+          <span className={cn("nav-count")}>{notes.filter(note => note.quiz !== null).length}</span>
         </button>
       </nav>
 
       <div className={cn("side-section")}>
         <span className={cn("eyebrow")}>Subjects</span>
-        {subjects.map((subject) => (
+        {subjectCounts.map((subject) => (
           <button key={subject.name}>
             <i className={cn(`subject-dot dot-${subject.tone}`)} />
             {subject.name}

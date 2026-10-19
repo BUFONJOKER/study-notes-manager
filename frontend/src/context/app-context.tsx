@@ -637,6 +637,8 @@ export function AppProvider({
         return;
       }
 
+      router.push(`/quiz/generating/${encodeURIComponent(noteId)}`);
+
       void generateQuiz(noteId);
     },
     [apiConfigured, generateQuiz],

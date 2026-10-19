@@ -10,7 +10,6 @@ import { DeleteNoteModal } from "@/components/notes/delete-note-modal";
 import { Header } from "./header";
 import { MobileNav } from "./mobile-nav";
 import { Sidebar } from "./sidebar";
-
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { deleteTarget, cancelDelete, confirmDelete, apiModalOpen, closeApiModal, apiConfigured, setApiConfigured, setOpenaiKey } = useApp();

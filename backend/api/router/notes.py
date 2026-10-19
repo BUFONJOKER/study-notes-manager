@@ -270,7 +270,7 @@ def _save_quiz(db: Session, db_note: Note, result: dict) -> None:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
-# ✅ Set response_class on the decorator, use yield directly
+# ✅ Change 'def' to 'async def'
 @router.post("/quiz_generation/{note_id}", response_class=EventSourceResponse)
 async def quiz_generation(
     note_id: str,
@@ -320,13 +320,13 @@ async def quiz_generation(
             "tokens": _usage_telemetry(usage_callback.usage_metadata),
         }
         _save_quiz(db, db_note, result)
-        print(f"Result {result}")
+
         response_data = QuizGenerationResponse(
             **result,
             user_id=db_note.user_id,
             title=db_note.title,
         ).model_dump()
-        print(f"Response data  = = {response_data}")
+
         yield ServerSentEvent(event="complete", data=response_data)
 
     except Exception as e:

@@ -1,9 +1,10 @@
-
 "use client";
 
 import { useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useApp } from "@/context/app-context";
+import { cn } from "@/lib/cn";
+import { Badge, Icon } from "@/components/ui";
 
 function formatNodeName(node: string): string {
   return node
@@ -25,15 +26,14 @@ export function QuizProgress() {
     quizStatus,
     quizProgress,
     quizError,
-    quizResult,
     generateQuiz,
     cancelQuizGeneration,
     resetQuizState,
   } = useApp();
 
   const startedForRef = useRef<string | null>(null);
-
   const note = getNote(noteId);
+
   const isGenerating = quizStatus === "generating";
   const isCompleted = quizStatus === "completed";
   const hasError = quizStatus === "error";
@@ -41,11 +41,19 @@ export function QuizProgress() {
   // Start generation when this page opens for a new note.
   useEffect(() => {
     if (!noteId || startedForRef.current === noteId) return;
-
     startedForRef.current = noteId;
-
     void generateQuiz(noteId);
   }, [noteId, generateQuiz]);
+
+  // Auto-redirect to results after completion
+  useEffect(() => {
+    if (isCompleted) {
+      const timer = setTimeout(() => {
+        router.push("/quiz/results");
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [isCompleted, router]);
 
   function retryGeneration() {
     resetQuizState();
@@ -58,165 +66,104 @@ export function QuizProgress() {
     router.back();
   }
 
+  // Define fallback stages list matched to workflow or default progression
+  const defaultStages = [
+    ["Analyzing note", "Reading structure and context"],
+    ["Creating summary", "Condensing the core ideas"],
+    ["Extracting key concepts", "Finding important terms"],
+    ["Generating questions", "Building your practice set"],
+  ];
+
+  // Calculate stage index based on history length or completion
+  const currentStageIndex = isCompleted
+    ? 4
+    : Math.min(3, Math.max(0, quizProgress.history.length - 1));
+
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-10">
+    <div className={cn("page progress-page")}>
       <button
         type="button"
-        onClick={() => router.back()}
-        className="mb-8 text-sm text-muted-foreground transition hover:text-foreground"
+        className={cn("back-link")}
+        onClick={cancelAndGoBack}
       >
-        ← Back
+        <Icon name="arrow" size={17} /> {isGenerating ? "Cancel and return to note" : "← Back"}
       </button>
 
-      <section className="rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
-        <div className="mb-6 flex items-start gap-4">
-          <div
-            className={[
-              "flex size-12 shrink-0 items-center justify-center rounded-xl",
-              isCompleted
-                ? "bg-green-100 text-green-700"
-                : hasError
-                  ? "bg-red-100 text-red-700"
-                  : "bg-primary/10 text-primary",
-            ].join(" ")}
-          >
-            {isCompleted ? (
-              <span className="text-2xl" aria-hidden="true">
-                ✓
-              </span>
-            ) : hasError ? (
-              <span className="text-xl" aria-hidden="true">
-                !
-              </span>
-            ) : (
-              <span className="text-2xl" aria-hidden="true">
-                ✦
-              </span>
-            )}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {isCompleted
-                ? "Quiz generated"
-                : hasError
-                  ? "Generation failed"
-                  : "Generating your quiz"}
-            </h1>
-
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {note
-                ? `Creating a quiz from "${note.title}".`
-                : "Preparing your study quiz."}
-            </p>
-          </div>
+      <div className={cn("progress-card panel")}>
+        <div className={cn("orb")}>
+          <Icon name="sparkle" size={31} />
+          <span />
+          <span />
         </div>
 
-        {isGenerating && (
-          <div
-            className="mb-6 flex items-center gap-3 rounded-lg bg-muted/60 p-4"
-            role="status"
-            aria-live="polite"
-          >
-            <span
-              className="size-5 animate-spin rounded-full border-2 border-current border-r-transparent"
-              aria-hidden="true"
-            />
-            <div>
-              <p className="font-medium">
-                {quizProgress.node
-                  ? formatNodeName(quizProgress.node)
-                  : "Connecting to the workflow"}
-              </p>
+        <Badge tone="mint">AI quiz generator</Badge>
 
-              <p className="mt-1 text-sm text-muted-foreground">
-                Waiting for the next workflow update…
-              </p>
-            </div>
-          </div>
-        )}
+        <h1>
+          {isCompleted
+            ? "Your quiz is ready"
+            : hasError
+              ? "Generation failed"
+              : "Creating your study quiz"}
+        </h1>
 
-        {quizProgress.history.length > 0 && (
-          <div className="mb-6">
-            <h2 className="mb-3 text-sm font-semibold">
-              Workflow activity
-            </h2>
+        <p>
+          {hasError
+            ? (quizError ?? "An error occurred during generation.")
+            : note
+              ? <>Turning <strong>{note.title}</strong> into focused practice questions.</>
+              : "Preparing your study quiz."}
+        </p>
 
-            <ol className="space-y-3">
-              {quizProgress.history.map((node, index) => {
-                const isCurrent = node === quizProgress.node;
+        {/* Progress bar */}
+        <div className={cn("progress-meter")}>
+          <span style={{ width: `${isCompleted ? 100 : Math.min(95, (currentStageIndex + 0.45) * 25)}%` }} />
+        </div>
 
-                return (
-                  <li
-                    key={`${node}-${index}`}
-                    className="flex items-center gap-3"
-                  >
-                    <span
-                      className={[
-                        "flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                        isCurrent && isGenerating
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-muted-foreground",
-                      ].join(" ")}
-                    >
-                      {index + 1}
-                    </span>
+        <div className={cn("progress-label")}>
+          <span>
+            {isCompleted
+              ? "Complete"
+              : hasError
+                ? "Failed"
+                : `${Math.round((currentStageIndex + 0.45) * 25)}% complete`}
+          </span>
+          <span>Usually takes less than a minute</span>
+        </div>
 
-                    <span
-                      className={
-                        isCurrent
-                          ? "font-medium"
-                          : "text-muted-foreground"
-                      }
-                    >
-                      {formatNodeName(node)}
-                    </span>
+        {/* Stages breakdown */}
+        <div className={cn("stage-list")}>
+          {defaultStages.map(([title, desc], i) => {
+            const isDone = isCompleted || i < currentStageIndex;
+            const isCurrent = !isCompleted && i === currentStageIndex && isGenerating;
 
-                    {isCurrent && isGenerating && (
-                      <span className="ml-auto text-xs text-muted-foreground">
-                        Running
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-        )}
+            return (
+              <div
+                className={cn(`stage ${isDone ? "done" : isCurrent ? "current" : ""}`)}
+                key={title}
+              >
+                <span className={cn("stage-status")}>
+                  {isDone ? <Icon name="check" size={16} /> : isCurrent ? <i /> : i + 1}
+                </span>
+                <div>
+                  <strong>{title}</strong>
+                  <small>{isCurrent ? desc : isDone ? "Complete" : "Waiting"}</small>
+                </div>
+                {isCurrent && <span className={cn("working")}>Working…</span>}
+              </div>
+            );
+          })}
+        </div>
 
+        {/* Error state alert box */}
         {hasError && (
-          <div
-            role="alert"
-            className="mb-6 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800"
-          >
+          <div role="alert" className="mt-4 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800">
             <p className="font-semibold">Something went wrong</p>
-            <p className="mt-1">
-              {quizError ?? "Quiz generation failed. Please try again."}
-            </p>
+            <p className="mt-1">{quizError ?? "Quiz generation failed. Please try again."}</p>
           </div>
         )}
 
-        {isCompleted && (
-          <div
-            role="status"
-            className="mb-6 rounded-lg border border-green-300 bg-green-50 p-4 text-sm text-green-800"
-          >
-            <p className="font-semibold">
-              Your quiz has been generated successfully.
-            </p>
-            <p className="mt-1">
-              The backend has sent its completion event.
-            </p>
-          </div>
-        )}
-
-        {quizStatus === "cancelled" && (
-          <p className="mb-6 rounded-lg bg-muted p-4 text-sm text-muted-foreground">
-            Quiz generation was cancelled.
-          </p>
-        )}
-
-        <div className="flex flex-wrap gap-3 border-t pt-6">
+        {/* Action Controls */}
+        <div className="mt-6 flex flex-wrap gap-3 border-t pt-6">
           {isGenerating && (
             <button
               type="button"
@@ -240,26 +187,19 @@ export function QuizProgress() {
           {isCompleted && (
             <button
               type="button"
-              onClick={() => router.back()}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+              onClick={() => router.push("/quiz")}
+              className="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 active:scale-[0.98]"
             >
-              Back to notes
+              View quiz results →
             </button>
           )}
         </div>
 
-        {isCompleted && quizResult && (
-          <details className="mt-6 rounded-lg border p-4">
-            <summary className="cursor-pointer text-sm font-medium">
-              View completion data
-            </summary>
-
-            <pre className="mt-4 overflow-x-auto whitespace-pre-wrap wrap-break-word text-xs">
-              {JSON.stringify(quizResult, null, 2)}
-            </pre>
-          </details>
-        )}
-      </section>
-    </main>
+        <div className={cn("progress-note")}>
+          <Icon name="sparkle" size={16} />
+          <span>You can leave this screen. We’ll save the quiz to your note when it’s ready.</span>
+        </div>
+      </div>
+    </div>
   );
 }

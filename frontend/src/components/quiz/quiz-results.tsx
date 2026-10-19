@@ -53,7 +53,11 @@ export function QuizResults() {
               </div>
               <Badge tone="mint">10 questions</Badge>
             </div>
-            {selectedNote?.quiz?.map((q, i) => (
+            {/* Safely handle quiz whether it is an array or a JSON string */}
+            {(typeof selectedNote?.quiz === "string"
+              ? JSON.parse(selectedNote.quiz)
+              : selectedNote?.quiz
+            )?.map((q: string, i: number) => (
               <div className={cn("question")} key={q}>
                 <span>{String(i + 1).padStart(2, "0")}</span>
                 <p>{q}</p>
