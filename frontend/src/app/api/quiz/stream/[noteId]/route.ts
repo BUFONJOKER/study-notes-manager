@@ -1,100 +1,58 @@
+import { NextRequest, NextResponse } from "next/server";
 
-import { NextRequest } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-
-export const dynamic = "force-dynamic";
-
-type RouteContext = {
-  params: Promise<{ noteId: string }>;
-};
-
-export async function GET(
-  req: NextRequest,
-  { params }: RouteContext,
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ noteId: string }> }
 ) {
-  const session = await getServerSession(authOptions);
-  const token = (session as { accessToken?: string } | null)?.accessToken;
-
-  if (!token) {
-    return Response.json(
-      { detail: "Unauthorized" },
-      { status: 401 },
-    );
-  }
-// --- ADDED: Extract the session-only OpenAI key from incoming client headers ---
-  const openAiKey = req.headers.get("X-OpenAI-Key");
-  if (!openAiKey) {
-    return Response.json(
-      { detail: "Missing OpenAI key in request headers." },
-      { status: 400 },
-    );
-  }
-
   const { noteId } = await params;
-  const backendUrl = process.env.BACKEND_API_URL;
 
-  if (!backendUrl) {
-    return Response.json(
-      { detail: "Backend API URL is not configured." },
-      { status: 500 },
+  // 1. Grab the OpenAI key sent from the client headers
+  const apiKey = request.headers.get("x-openai-key");
+  // const authHeader = request.headers.get("authorization");
+  if (!apiKey) {
+    return NextResponse.json(
+      { detail: "OpenAI API key is missing in request headers." },
+      { status: 400 }
     );
   }
+
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   try {
-    // Your FastAPI endpoint is POST, even though this proxy is GET.
-    const upstream = await fetch(
-      `${backendUrl.replace(/\/+$/, "")}/notes/quiz_generation/${encodeURIComponent(noteId)}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "text/event-stream",
-          ...(openAiKey ? { "X-OpenAI-Key": openAiKey } : {}),
-        },
-        cache: "no-store",
-        signal: req.signal,
+    // 2. Forward the request to FastAPI, explicitly passing the X-OpenAI-Key header
+    const backendResponse = await fetch(`${backendUrl}/notes/quiz_generation/${encodeURIComponent(noteId)}`, {
+      method: "POST",
+      headers: {
+        "Accept": "text/event-stream",
+        "X-OpenAI-Key": apiKey, // 👈 Crucial: Forward the key to FastAPI!
+        // Forward authorization token if needed as well:
+        ...(request.headers.get("authorization")
+          ? { "Authorization": request.headers.get("authorization")! }
+          : {}),
       },
-    );
+    });
 
-    // Preserve normal HTTP errors from FastAPI.
-    if (!upstream.ok) {
-      return new Response(upstream.body, {
-        status: upstream.status,
-        headers: {
-          "Content-Type":
-            upstream.headers.get("content-type") ??
-            "application/json",
-          "Cache-Control": "no-store",
-        },
-      });
-    }
-
-    if (!upstream.body) {
-      return Response.json(
-        { detail: "Backend returned an empty stream." },
-        { status: 502 },
+    if (!backendResponse.ok) {
+      const errorText = await backendResponse.text();
+      return NextResponse.json(
+        { detail: errorText || "Backend quiz generation failed." },
+        { status: backendResponse.status }
       );
     }
 
-    return new Response(upstream.body, {
+    // 3. Stream the response back to the frontend client
+    return new NextResponse(backendResponse.body, {
       status: 200,
       headers: {
-        "Content-Type": "text/event-stream; charset=utf-8",
-        "Cache-Control": "no-cache, no-transform",
-        "X-Accel-Buffering": "no",
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-live",
       },
     });
   } catch (error) {
-    if (req.signal.aborted) {
-      return new Response(null, { status: 204 });
-    }
-
-    console.error("Quiz streaming proxy failed:", error);
-
-    return Response.json(
-      { detail: "Unable to connect to the quiz generation service." },
-      { status: 502 },
+    return NextResponse.json(
+      { detail: error instanceof Error ? error.message : "Proxy connection failed." },
+      { status: 500 }
     );
   }
 }

@@ -14,8 +14,17 @@ export function NoteDetail({ note_id }: { note_id: string }) {
   const note = getNote(note_id);
 
   useEffect(() => {
-    selectNote(note_id);
+    if (note_id) {
+      selectNote(note_id);
+    }
   }, [note_id, selectNote]);
+
+  const { notes } = useApp();
+
+  // If notes are still loading from the API, show a loading state instead of false "Not Found"
+  if (notes.length === 0) {
+    return <div className={cn("page reading-page")}><p>Loading note...</p></div>;
+  }
 
   if (!note) return <NoteNotFound />;
 
@@ -35,7 +44,7 @@ export function NoteDetail({ note_id }: { note_id: string }) {
         <div className={cn("detail-actions")}>
           <Button variant="secondary" icon="edit" onClick={() => router.push(routes.editNote(note.note_id))}>Edit</Button>
           <Button variant="secondary" icon="trash" onClick={() => requestDelete(note)}>Delete</Button>
-          <Button icon={apiConfigured ? "sparkle" : "lock"} onClick={()=> requestAi(selectedNote?.note_id || "")}>Generate quiz</Button>
+          <Button icon={apiConfigured ? "sparkle" : "lock"} onClick={()=> requestAi(note_id)}>Generate quiz</Button>
         </div>
       </div>
 
@@ -61,7 +70,7 @@ export function NoteDetail({ note_id }: { note_id: string }) {
               <strong>{apiConfigured ? "Ready to check your understanding?" : "OpenAI API key required"}</strong>
               <p>{apiConfigured ? "Generate practice questions from this note in under a minute." : "Configure a valid key before using AI study tools."}</p>
             </div>
-            <Button variant="secondary"  onClick={()=> requestAi(selectedNote?.note_id || "")}>{apiConfigured ? "Create quiz" : "Set up AI"}</Button>
+            <Button variant="secondary"  onClick={()=> requestAi(note_id)}>{apiConfigured ? "Create quiz" : "Set up AI"}</Button>
           </div>
         </article>
 

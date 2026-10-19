@@ -7,7 +7,7 @@ import { Button, Icon, Modal } from "@/components/ui";
 type ApiKeyModalProps = {
   configured: boolean;
   close: () => void;
-  onAccepted: () => void;
+  onAccepted: (key: string) => void;
   onClear: () => void;
 };
 
@@ -37,11 +37,12 @@ export function ApiKeyModal({ configured, close, onAccepted, onClear }: ApiKeyMo
     setMessage("");
     window.setTimeout(() => {
       // The raw key is deliberately discarded after verification.
+      const validatedKey = candidate;
       setKey("");
       setVisible(false);
       setStatus("success");
       setMessage("API key accepted. AI study features are now available.");
-      onAccepted();
+      onAccepted(validatedKey);
     }, 1100);
   };
 

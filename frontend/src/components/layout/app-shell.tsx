@@ -13,7 +13,7 @@ import { Sidebar } from "./sidebar";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { deleteTarget, cancelDelete, confirmDelete, apiModalOpen, closeApiModal, apiConfigured, setApiConfigured } = useApp();
+  const { deleteTarget, cancelDelete, confirmDelete, apiModalOpen, closeApiModal, apiConfigured, setApiConfigured, setOpenaiKey } = useApp();
 
   // The mobile drawer is tied to the path it was opened on, so navigating closes it without an effect.
   const [drawerPath, setDrawerPath] = useState<string | null>(null);
@@ -35,8 +35,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <ApiKeyModal
           configured={apiConfigured}
           close={closeApiModal}
-          onAccepted={() => setApiConfigured(true)}
-          onClear={() => setApiConfigured(false)}
+          onAccepted={(submittedKey) => {
+            setOpenaiKey(submittedKey);
+            setApiConfigured(true);
+          }}
+          onClear={() => {
+            setOpenaiKey("");
+            setApiConfigured(false);
+          }}
         />
       )}
     </div>

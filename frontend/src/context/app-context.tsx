@@ -73,6 +73,7 @@ type AppContextValue = {
   apiConfigured: boolean;
   setApiConfigured: (value: boolean) => void;
   openaiKey: string;
+  setOpenaiKey: (key: string) => void;
   apiModalOpen: boolean;
   openApiModal: () => void;
   closeApiModal: () => void;
@@ -430,10 +431,11 @@ export function AppProvider({
         const response = await fetch(
           `/api/quiz/stream/${encodeURIComponent(noteId)}`,
           {
-            method: "GET",
+            method: "POST",
             headers: {
               Accept: "text/event-stream",
               ...(openaiKey ? { "X-OpenAI-Key": openaiKey } : {}),
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             cache: "no-store",
             credentials: "same-origin",
@@ -630,14 +632,14 @@ export function AppProvider({
         return;
       }
 
-      if (!apiConfigured || !openaiKey.trim()) {
+      if (!apiConfigured) {
         setApiModalOpen(true);
         return;
       }
 
       void generateQuiz(noteId);
     },
-    [apiConfigured,openaiKey, generateQuiz],
+    [apiConfigured, generateQuiz],
   );
 
   const value = useMemo<AppContextValue>(
