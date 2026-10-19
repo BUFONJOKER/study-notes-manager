@@ -49,7 +49,7 @@ export function QuizProgress() {
   useEffect(() => {
     if (isCompleted) {
       const timer = setTimeout(() => {
-        router.push("/quiz/results");
+        router.push("/quiz");
       }, 1200);
       return () => clearTimeout(timer);
     }

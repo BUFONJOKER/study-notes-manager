@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/app-context";
 import { cn } from "@/lib/cn";
@@ -15,6 +15,15 @@ type NoteFormProps = {
 
 type FormState = { note_id: string; title: string; subject: string; content: string };
 
+function normalizeContent(content: string): string {
+    return content
+      .replace(/\r\n?/g, "\n")
+      .replace(/[^\S\n]+/g, " ")
+      .replace(/ *\n */g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
 export function NoteForm({ mode, note }: NoteFormProps) {
   const router = useRouter();
   const { notes, profile, saveNote } = useApp();
@@ -24,6 +33,19 @@ export function NoteForm({ mode, note }: NoteFormProps) {
     subject: note?.subject || "",
     content: note?.content || "",
   });
+  const subjectsList = [
+    "Biology",
+    "Chemistry",
+    "Physics",
+    "Mathematics",
+    "English",
+    "Computer Science",
+    "History",
+    "Geography",
+    "Economics",
+    "Psychology",
+    "Other",
+  ];
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -35,24 +57,42 @@ export function NoteForm({ mode, note }: NoteFormProps) {
   const update = (field: keyof FormState, value: string) => setForm((current) => ({ ...current, [field]: value }));
   const error = (field: keyof FormState) => submitted && !form[field];
 
-  const submit = (e: FormEvent) => {
+
+
+
+
+  const submit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitted(true);
+
     const id = form.note_id.trim().toUpperCase();
-    if (!id || !form.title || !form.subject || !form.content || duplicateId) return;
+    const title = form.title.trim();
+    const content = normalizeContent(form.content);
+
+    if (
+      !id ||
+      !title ||
+      !form.subject ||
+      !content ||
+      duplicateId
+    ) {
+      return;
+    }
+
     setSaving(true);
+
     setTimeout(() => {
       saveNote({
-        note_id: form.note_id.trim().toUpperCase(),
-        title: form.title,
+        note_id: id,
+        title,
         subject: form.subject,
-        content: form.content,
+        content,
         analysis_result: null,
         summary_result: null,
         key_concepts: null,
         quiz: null,
-
       });
+
       setSaving(false);
       router.push(routes.note(id));
     }, 700);
@@ -105,12 +145,11 @@ export function NoteForm({ mode, note }: NoteFormProps) {
               <span>Subject <b>*</b></span>
               <select value={form.subject} onChange={(e) => update("subject", e.target.value)} className={cn(error("subject") ? "invalid" : "")}>
                 <option value="">Select a subject</option>
-                <option>Biology</option>
-                <option>History</option>
-                <option>Chemistry</option>
-                <option>Mathematics</option>
-                <option>Psychology</option>
-                <option>Other</option>
+                {subjectsList.map((subject) => (
+                  <option key={subject} value={subject}>
+                    {subject}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
@@ -125,7 +164,10 @@ export function NoteForm({ mode, note }: NoteFormProps) {
             </div>
           </div>
           <label className={cn("editor-label")}>
-            <span>Note content <b>*</b><small>{form.content.length} characters</small></span>
+            <span>
+              Note content <b>*</b>
+              <small>{form.content.length} characters</small>
+            </span>
             <div className={cn(`editor ${error("content") ? "invalid" : ""}`)}>
               <div className={cn("editor-toolbar")}>
                 <button type="button"><strong>B</strong></button>
@@ -142,7 +184,11 @@ export function NoteForm({ mode, note }: NoteFormProps) {
                 placeholder="Start writing your study notes here..."
               />
             </div>
-            {error("content") && <small className={cn("field-error")}>Note content cannot be empty</small>}
+            {error("content") && (
+              <small className={cn("field-error")}>
+                Note content cannot be empty
+              </small>
+            )}
           </label>
         </section>
 

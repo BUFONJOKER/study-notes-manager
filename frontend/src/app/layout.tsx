@@ -5,6 +5,7 @@ import { AppProvider } from "@/context/app-context";
 import AuthProvider from "@/components/SessionProvider";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
+import { SessionExpiredAlert } from "@/components/session-expired-alert";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -44,6 +45,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <AppProvider>
+              <SessionExpiredAlert />
               {children}
             </AppProvider>
           </AuthProvider>

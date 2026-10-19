@@ -31,7 +31,7 @@ export function DashboardView() {
       <StatsGrid totalNotes={notes.length} subjects={Array.from(new Set(notes.map((note) => note.subject))).length} generatedQuizzes={notes.filter(note => note.quiz !== null).length} recentlyUpdated={ notes.filter(n => (Date.now() - new Date(n.updated_at).getTime()) <= 7 * 24 * 60 * 60 * 1000).length} />
 
       <div className={cn("dashboard-grid")}>
-        <RecentNotesPanel notes={notes.slice(0, 4)} />
+        <RecentNotesPanel notes={notes} />
         <ActivityPanel notes={notes} />
       </div>
 

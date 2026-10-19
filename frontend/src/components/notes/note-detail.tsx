@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -10,10 +10,50 @@ import { routes } from "@/lib/routes";
 import { BackLink, Button, Icon } from "@/components/ui";
 import { NoteNotFound } from "./note-not-found";
 
+function slugifyHeading(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-");
+}
+
+function extractHeadings(content: string) {
+  const counts = new Map<string, number>();
+
+  return content
+    .split("\n")
+    .flatMap((line) => {
+      const markdownMatch = line.match(/^#{1,3}\s+(.+?)\s*#*\s*$/);
+      const numberedMatch = line.match(
+        /^\s*\d+[.)]\s+(.+?)\s*$/,
+      );
+
+      const title = markdownMatch?.[1] ?? numberedMatch?.[1];
+
+      if (!title) return [];
+
+      const slug = slugifyHeading(title);
+      const count = counts.get(slug) ?? 0;
+      counts.set(slug, count + 1);
+
+      return [
+        {
+          title: title.trim(),
+          id: count === 0 ? slug : `${slug}-${count}`,
+        },
+      ];
+    });
+}
 export function NoteDetail({ note_id }: { note_id: string }) {
   const router = useRouter();
   const { getNote, selectNote, requestDelete, requestAi, apiConfigured, notes } = useApp();
   const note = getNote(note_id);
+
+  const headings = useMemo(
+    () => extractHeadings(note?.content ?? ""),
+    [note?.content],
+  );
 
   useEffect(() => {
     if (note_id) {
@@ -105,8 +145,30 @@ export function NoteDetail({ note_id }: { note_id: string }) {
             </div>
 
             {/* Rendered Markdown Body using Tailwind Typography (prose) */}
-            <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed font-sans text-[15px]">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            <div
+              id="note-overview"
+              className="prose prose-slate max-w-none text-slate-700 leading-relaxed font-sans text-[15px]"
+            >
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: ({ children, ...props }) => (
+                    <h1 id={slugifyHeading(String(children))} {...props}>
+                      {children}
+                    </h1>
+                  ),
+                  h2: ({ children, ...props }) => (
+                    <h2 id={slugifyHeading(String(children))} {...props}>
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children, ...props }) => (
+                    <h3 id={slugifyHeading(String(children))} {...props}>
+                      {children}
+                    </h3>
+                  ),
+                }}
+              >
                 {note.content}
               </ReactMarkdown>
             </div>
@@ -145,19 +207,30 @@ export function NoteDetail({ note_id }: { note_id: string }) {
                 <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
                   ON THIS PAGE
                 </span>
+
                 <nav className="flex flex-col space-y-1 text-xs font-medium">
-                  <a className="rounded-md px-3 py-2 text-[#1B4332] bg-[#E8EFE9] font-semibold">
+                  <a
+                    href="#note-overview"
+                    className="rounded-md px-3 py-2 text-[#1B4332] bg-[#E8EFE9] font-semibold"
+                  >
                     Overview
                   </a>
-                  <a className="rounded-md px-3 py-2 text-slate-500 hover:text-slate-900 transition cursor-pointer">
-                    Glycolysis
-                  </a>
-                  <a className="rounded-md px-3 py-2 text-slate-500 hover:text-slate-900 transition cursor-pointer">
-                    The Citric Acid Cycle
-                  </a>
-                  <a className="rounded-md px-3 py-2 text-slate-500 hover:text-slate-900 transition cursor-pointer">
-                    Oxidative Phosphorylation
-                  </a>
+
+                  {headings.map((heading) => (
+                    <a
+                      key={heading.id}
+                      href={`#${heading.id}`}
+                      className="rounded-md px-3 py-2 text-slate-500 hover:bg-[#E8EFE9] hover:text-[#1B4332] transition"
+                    >
+                      {heading.title}
+                    </a>
+                  ))}
+
+                  {headings.length === 0 && (
+                    <p className="px-3 py-2 text-slate-400">
+                      No headings in this note yet.
+                    </p>
+                  )}
                 </nav>
               </div>
 

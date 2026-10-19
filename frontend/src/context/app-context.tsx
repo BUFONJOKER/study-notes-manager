@@ -16,7 +16,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import axios, { AxiosError } from "axios";
-
+import { api } from "@/lib/api";
 import type {
   NoteCreate,
   NoteUpdate,
@@ -182,7 +182,7 @@ export function AppProvider({
 
     async function loadUserData() {
       try {
-        const userResponse = await axios.get<UserResponse>(
+        const userResponse = await api.get<UserResponse>(
           `${API_BASE_URL}/users/me`,
           { headers: authHeaders },
         );
@@ -192,7 +192,7 @@ export function AppProvider({
         const user = userResponse.data;
         setProfile(user);
 
-        const notesResponse = await axios.get<NoteResponse[]>(
+        const notesResponse = await api.get<NoteResponse[]>(
           `${API_BASE_URL}/notes/${user.user_id}`,
           { headers: authHeaders },
         );
@@ -256,7 +256,7 @@ export function AppProvider({
 
   const saveNote = useCallback(
     async (note: NoteCreate) => {
-      const response = await axios.post<NoteResponse>(
+      const response = await api.post<NoteResponse>(
         `${API_BASE_URL}/notes/create_note`,
         note,
         { headers: authHeaders },
@@ -279,7 +279,7 @@ export function AppProvider({
 
   const updateNote = useCallback(
     async (noteId: string, note: NoteUpdate) => {
-      const response = await axios.patch<NoteResponse>(
+      const response = await api.patch<NoteResponse>(
         `${API_BASE_URL}/notes/update_note/${encodeURIComponent(noteId)}`,
         note,
         { headers: authHeaders },
@@ -309,7 +309,7 @@ export function AppProvider({
 
     const noteId = deleteTarget.note_id;
 
-    await axios.delete(
+    await api.delete(
       `${API_BASE_URL}/notes/delete_note/${encodeURIComponent(noteId)}`,
       { headers: authHeaders },
     );
@@ -332,7 +332,7 @@ export function AppProvider({
 
   const registerUser = useCallback(
     async (userData: UserCreate) => {
-      const response = await axios.post<UserResponse>(
+      const response = await api.post<UserResponse>(
         `${API_BASE_URL}/users/`,
         userData,
       );
@@ -344,7 +344,7 @@ export function AppProvider({
 
   const updateUser = useCallback(
     async (userId: number, userData: UserUpdate) => {
-      const response = await axios.put<UserResponse>(
+      const response = await api.put<UserResponse>(
         `${API_BASE_URL}/users/${userId}`,
         userData,
         { headers: authHeaders },
@@ -357,7 +357,7 @@ export function AppProvider({
 
   const deleteAccount = useCallback(
     async (userId: number) => {
-      await axios.delete(`${API_BASE_URL}/users/${userId}`, {
+      await api.delete(`${API_BASE_URL}/users/${userId}`, {
         headers: authHeaders,
       });
 
