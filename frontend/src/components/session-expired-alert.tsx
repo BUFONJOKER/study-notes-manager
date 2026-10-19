@@ -73,7 +73,7 @@ export function SessionExpiredAlert() {
     <div
       role="alert"
       aria-live="assertive"
-      className="fixed inset-x-4 top-4 z-[100] mx-auto flex max-w-lg items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950 shadow-xl dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
+      className="fixed inset-x-4 top-4 z-100 mx-auto flex max-w-lg items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950 shadow-xl dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
     >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200">
         <Icon name="clock" size={20} />
