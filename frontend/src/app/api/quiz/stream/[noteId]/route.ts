@@ -22,6 +22,14 @@ export async function GET(
       { status: 401 },
     );
   }
+// --- ADDED: Extract the session-only OpenAI key from incoming client headers ---
+  const openAiKey = req.headers.get("X-OpenAI-Key");
+  if (!openAiKey) {
+    return Response.json(
+      { detail: "Missing OpenAI key in request headers." },
+      { status: 400 },
+    );
+  }
 
   const { noteId } = await params;
   const backendUrl = process.env.BACKEND_API_URL;
@@ -42,6 +50,7 @@ export async function GET(
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "text/event-stream",
+          ...(openAiKey ? { "X-OpenAI-Key": openAiKey } : {}),
         },
         cache: "no-store",
         signal: req.signal,

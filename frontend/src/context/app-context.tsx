@@ -72,6 +72,7 @@ type AppContextValue = {
 
   apiConfigured: boolean;
   setApiConfigured: (value: boolean) => void;
+  openaiKey: string;
   apiModalOpen: boolean;
   openApiModal: () => void;
   closeApiModal: () => void;
@@ -135,6 +136,8 @@ export function AppProvider({
 
   const [profile, setProfile] = useState<UserResponse | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
+
+  const [openaiKey, setOpenaiKey] = useState<string>("");
 
   const [apiConfigured, setApiConfigured] = useState(false);
   const [apiModalOpen, setApiModalOpen] = useState(false);
@@ -430,6 +433,7 @@ export function AppProvider({
             method: "GET",
             headers: {
               Accept: "text/event-stream",
+              ...(openaiKey ? { "X-OpenAI-Key": openaiKey } : {}),
             },
             cache: "no-store",
             credentials: "same-origin",
@@ -594,7 +598,7 @@ export function AppProvider({
         }
       }
     },
-    [],
+    [openaiKey],
   );
 
   // Abort an active stream when the authenticated session disappears.
@@ -620,14 +624,20 @@ export function AppProvider({
 
   const requestAi = useCallback(
     (noteId: string) => {
-      if (!apiConfigured) {
+
+      if (!noteId.trim()) {
+        alert("Please select or open a specific note to generate a quiz.");
+        return;
+      }
+
+      if (!apiConfigured || !openaiKey.trim()) {
         setApiModalOpen(true);
         return;
       }
 
       void generateQuiz(noteId);
     },
-    [apiConfigured, generateQuiz],
+    [apiConfigured,openaiKey, generateQuiz],
   );
 
   const value = useMemo<AppContextValue>(
@@ -661,6 +671,8 @@ export function AppProvider({
       quizError,
       quizResult,
       resetQuizState,
+      openaiKey,
+      setOpenaiKey,
 
       apiConfigured,
       setApiConfigured,
@@ -694,6 +706,8 @@ export function AppProvider({
       quizError,
       quizResult,
       resetQuizState,
+      openaiKey,
+      setOpenaiKey,
       apiConfigured,
       apiModalOpen,
       openApiModal,

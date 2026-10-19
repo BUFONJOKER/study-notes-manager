@@ -1,16 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+# Location: api/routers/openai.py
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from openai import OpenAI, AuthenticationError, APIConnectionError, RateLimitError
-from typing import Annotated
+from typing import Annotated, Optional
 
 from api.schemas.openai import OpenAIKeyRequest, OpenAIKeyResponse
 from api.utils.auth import get_current_user, get_openai_key, OpenAIKeyDep
 from api.db.models import User
 
 router = APIRouter(prefix="/openai", tags=["openai"])
-
-# Type aliases
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
-
 
 @router.post("/set-key", response_model=OpenAIKeyResponse)
 async def set_openai_key(
@@ -31,19 +29,27 @@ async def set_openai_key(
         )
 
     return OpenAIKeyResponse(
-        message="OpenAI API key received for this request only and not stored."
+        message="OpenAI API key validated for this session-state loop."
     )
 
 
 @router.get("/validate-key", response_model=OpenAIKeyResponse)
 async def validate_key(
     current_user: CurrentUserDep,
-    api_key: OpenAIKeyDep,
+    # --- MODIFIED: Ensure validation relies directly on the incoming Request Header ---
+    x_openai_key: Optional[str] = Header(None, alias="X-OpenAI-Key"),
 ):
     """Validate the supplied key against the official OpenAI API without storing it."""
-    client = OpenAI(api_key=api_key)
+    if not x_openai_key:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="X-OpenAI-Key header is missing.",
+        )
+
+    client = OpenAI(api_key=x_openai_key)
 
     try:
+        # Minimum execution check to guarantee key validity
         client.models.list()
     except AuthenticationError as exc:
         raise HTTPException(
