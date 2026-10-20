@@ -71,40 +71,34 @@ def _usage_telemetry(usage_metadata: dict) -> dict:
     }
 
 
-@router.get("/get_all_names", response_model=list[str])
-async def get_all_names(db: DBDep):
-    """Return all unique user names that have notes."""
+# @router.get("/get_all_names", response_model=list[str])
+# async def get_all_names(db: DBDep):
+#     """Return all unique user names that have notes."""
 
-    try:
-        user_names = db.query(Note.user_name).distinct().all()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+#     try:
+#         user_names = db.query(Note.user_name).distinct().all()
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-    if not user_names:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No user names found in the database.",
-        )
+#     if not user_names:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="No user names found in the database.",
+#         )
 
-    return [name[0] for name in user_names]
+#     return [name[0] for name in user_names]
 
 
-@router.get("/{user_id}", response_model=list[NoteResponse])
-async def read_notes(user_id: int, db: DBDep, current_user: current_user_dep):
+@router.get("/read_note", response_model=list[NoteResponse])
+async def read_notes(db: DBDep, current_user: current_user_dep):
     """Return all notes belonging to a user logged in. This endpoint is protected and requires authentication."""
 
-    if current_user.user_id != user_id:
-        raise HTTPException(
-            status_code=403,
-            detail="You are not allowed to access this user's notes.",
-        )
-
     # Users can only access their own notes.
-    if current_user.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only access your own notes.",
-        )
+    # if current_user.user_id != user_id:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail="You can only access your own notes.",
+    #     )
 
     notes = (
         db.query(Note)

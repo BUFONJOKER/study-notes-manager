@@ -109,11 +109,11 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = String(token.user_id);
-        session.user.name = token.user_name;
+        session.user.id = String(token.user_id ?? "");
+        session.user.name = String(token.user_name ?? "");
       }
 
-      session.accessToken = token.accessToken;
+      session.accessToken = typeof token.accessToken === "string" ? token.accessToken : "";
       return session;
     },
   },

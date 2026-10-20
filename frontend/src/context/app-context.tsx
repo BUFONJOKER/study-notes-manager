@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -33,8 +32,6 @@ import type {
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-
 
 type AppContextValue = {
   token: string | null;
@@ -78,6 +75,9 @@ type AppContextValue = {
   openApiModal: () => void;
   closeApiModal: () => void;
   requestAi: (noteId: string) => void;
+
+  actionError: string | null;
+  clearActionError: () => void;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -89,22 +89,42 @@ const EMPTY_PROGRESS: QuizProgressState = {
 };
 
 function getErrorMessage(error: unknown): string {
-  if (axios.isAxiosError(error)) {
-    const data = error.response?.data as
-      | { detail?: string; message?: string }
-      | undefined;
-
-    return (
-      data?.detail ||
-      data?.message ||
-      error.message ||
-      "The request failed."
-    );
+  if (axios.isCancel(error) || (error instanceof Error && error.name === "AbortError")) {
+    return ""; // Ignored for intentional cancellations
   }
 
-  return error instanceof Error
-    ? error.message
-    : "An unexpected error occurred.";
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as
+      | { detail?: string | Array<{ msg?: string }>; message?: string }
+      | undefined;
+
+    const detail = data?.detail;
+    if (Array.isArray(detail)) {
+      const messages = detail
+        .map((err) => err.msg)
+        .filter(Boolean)
+        .join(", ");
+      if (messages) return messages;
+    } else if (typeof detail === "string") {
+      return detail;
+    }
+
+    if (data?.message) {
+      return data.message;
+    }
+
+    if (error.message) {
+      return error.message;
+    }
+
+    return "The request failed.";
+  }
+
+  if (error instanceof Error) {
+    return error.message || "An unexpected error occurred.";
+  }
+
+  return "An unexpected error occurred.";
 }
 
 function formatSseError(data: unknown): string {
@@ -153,6 +173,12 @@ export function AppProvider({
   const streamControllerRef = useRef<AbortController | null>(null);
   const activeQuizIdRef = useRef<string | null>(null);
 
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const clearActionError = useCallback(() => {
+    setActionError(null);
+  }, []);
+
   const authHeaders = useMemo(
     () => ({
       Authorization: `Bearer ${token}`,
@@ -160,6 +186,24 @@ export function AppProvider({
     }),
     [token],
   );
+
+  const withErrorHandler = <Args extends any[], Return>(
+    fn: (...args: Args) => Promise<Return>
+  ) => {
+    return async (...args: Args): Promise<Return | undefined> => {
+      try {
+        setActionError(null);
+        return await fn(...args);
+      } catch (error) {
+        const message = getErrorMessage(error);
+        if (message) {
+          setActionError(message);
+        }
+        console.error("Global Catch Event Triggered:", error);
+        return undefined;
+      }
+    };
+  };
 
   // --------------------------------------------------
   // Load the authenticated user's profile and notes
@@ -182,6 +226,7 @@ export function AppProvider({
 
     async function loadUserData() {
       try {
+        setActionError(null);
         const userResponse = await api.get<UserResponse>(
           `${API_BASE_URL}/users/me`,
           { headers: authHeaders },
@@ -193,7 +238,7 @@ export function AppProvider({
         setProfile(user);
 
         const notesResponse = await api.get<NoteResponse[]>(
-          `${API_BASE_URL}/notes/${user.user_id}`,
+          `${API_BASE_URL}/notes/read_note`,
           { headers: authHeaders },
         );
 
@@ -215,6 +260,10 @@ export function AppProvider({
         });
       } catch (error) {
         if (!cancelled) {
+          const message = getErrorMessage(error);
+          if (message) {
+            setActionError(message);
+          }
           console.error("Failed to load user data:", error);
         }
       }
@@ -255,7 +304,7 @@ export function AppProvider({
   );
 
   const saveNote = useCallback(
-    async (note: NoteCreate) => {
+    withErrorHandler(async (note: NoteCreate) => {
       const response = await api.post<NoteResponse>(
         `${API_BASE_URL}/notes/create_note`,
         note,
@@ -273,12 +322,12 @@ export function AppProvider({
 
       setSelectedId(savedNote.note_id);
       setIsNewUser(false);
-    },
+    }),
     [authHeaders],
   );
 
   const updateNote = useCallback(
-    async (noteId: string, note: NoteUpdate) => {
+    withErrorHandler(async (noteId: string, note: NoteUpdate) => {
       const response = await api.patch<NoteResponse>(
         `${API_BASE_URL}/notes/update_note/${encodeURIComponent(noteId)}`,
         note,
@@ -292,7 +341,7 @@ export function AppProvider({
           item.note_id === noteId ? updatedNote : item,
         ),
       );
-    },
+    }),
     [authHeaders],
   );
 
@@ -304,46 +353,51 @@ export function AppProvider({
     setDeleteTarget(null);
   }, []);
 
-  const confirmDelete = useCallback(async () => {
-    if (!deleteTarget) return;
+  const confirmDelete = useCallback(
+    withErrorHandler(async () => {
+      if (!deleteTarget) return;
 
-    const noteId = deleteTarget.note_id;
+      const noteId = deleteTarget.note_id;
 
-    await api.delete(
-      `${API_BASE_URL}/notes/delete_note/${encodeURIComponent(noteId)}`,
-      { headers: authHeaders },
-    );
+      await api.delete(
+        `${API_BASE_URL}/notes/delete_note/${encodeURIComponent(noteId)}`,
+        { headers: authHeaders },
+      );
 
-    setNotes((current) =>
-      current.filter((note) => note.note_id !== noteId),
-    );
+      setNotes((current) =>
+        current.filter((note) => note.note_id !== noteId),
+      );
 
-    setSelectedId((current) =>
-      current === noteId ? null : current,
-    );
+      setSelectedId((current) =>
+        current === noteId ? null : current,
+      );
 
-    setIsNewUser(notes.length <= 1);
-    setDeleteTarget(null);
-  }, [deleteTarget, authHeaders, notes.length]);
+      setIsNewUser(notes.length <= 1);
+      setDeleteTarget(null);
+    }),
+    [deleteTarget, authHeaders, notes.length]
+  );
 
   // --------------------------------------------------
   // User profile
   // --------------------------------------------------
 
   const registerUser = useCallback(
-    async (userData: UserCreate) => {
+    withErrorHandler(async (userData: UserCreate) => {
       const response = await api.post<UserResponse>(
         `${API_BASE_URL}/users/`,
         userData,
       );
 
       setProfile(response.data);
-    },
-    [],
+      alert("You are registered successfully. Please login.");
+      router.push("/login");
+    }),
+    [router],
   );
 
   const updateUser = useCallback(
-    async (userId: number, userData: UserUpdate) => {
+    withErrorHandler(async (userId: number, userData: UserUpdate) => {
       const response = await api.put<UserResponse>(
         `${API_BASE_URL}/users/${userId}`,
         userData,
@@ -351,12 +405,12 @@ export function AppProvider({
       );
 
       setProfile(response.data);
-    },
+    }),
     [authHeaders],
   );
 
   const deleteAccount = useCallback(
-    async (userId: number) => {
+    withErrorHandler(async (userId: number) => {
       await api.delete(`${API_BASE_URL}/users/${userId}`, {
         headers: authHeaders,
       });
@@ -366,7 +420,7 @@ export function AppProvider({
       setSelectedId(null);
 
       await signOut({ callbackUrl: "/login" });
-    },
+    }),
     [authHeaders],
   );
 
@@ -398,12 +452,13 @@ export function AppProvider({
   const generateQuiz = useCallback(
     async (noteId: string) => {
       if (!noteId.trim()) {
-        setQuizError("A note ID is required.");
+        const msg = "A note ID is required.";
+        setQuizError(msg);
+        setActionError(msg);
         setQuizStatus("error");
         return;
       }
 
-      // Avoid accidentally starting the same stream twice.
       if (
         activeQuizIdRef.current === noteId &&
         streamControllerRef.current &&
@@ -415,7 +470,6 @@ export function AppProvider({
       streamControllerRef.current?.abort();
 
       const controller = new AbortController();
-
       streamControllerRef.current = controller;
       activeQuizIdRef.current = noteId;
 
@@ -423,11 +477,11 @@ export function AppProvider({
       setQuizProgress(EMPTY_PROGRESS);
       setQuizError(null);
       setQuizResult(null);
+      setActionError(null);
 
       let receivedCompleteEvent = false;
 
       try {
-        // Browser -> Next.js proxy -> FastAPI POST endpoint.
         const response = await fetch(
           `/api/quiz/stream/${encodeURIComponent(noteId)}`,
           {
@@ -445,18 +499,23 @@ export function AppProvider({
 
         if (!response.ok) {
           const body = await response.text();
-
           let message = body || `Request failed (${response.status}).`;
 
           try {
             const parsed = JSON.parse(body) as {
-              detail?: string;
+              detail?: string | Array<{ msg?: string }>;
               message?: string;
             };
 
-            message = parsed.detail || parsed.message || message;
+            if (Array.isArray(parsed.detail)) {
+              message = parsed.detail.map((e) => e.msg).filter(Boolean).join(", ") || message;
+            } else if (typeof parsed.detail === "string") {
+              message = parsed.detail;
+            } else if (parsed.message) {
+              message = parsed.message;
+            }
           } catch {
-            // The upstream response wasn't JSON.
+            // Upstream response wasn't JSON.
           }
 
           throw new Error(message);
@@ -468,7 +527,6 @@ export function AppProvider({
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-
         let buffer = "";
 
         const handleEvent = (block: string) => {
@@ -488,7 +546,6 @@ export function AppProvider({
           if (dataLines.length === 0) return;
 
           const rawData = dataLines.join("\n");
-
           let data: unknown = rawData;
 
           try {
@@ -516,10 +573,8 @@ export function AppProvider({
             return;
           }
 
-
           if (eventName === "complete") {
             const result = data as QuizGenerationResponse;
-
             receivedCompleteEvent = true;
 
             setQuizResult(result);
@@ -530,19 +585,18 @@ export function AppProvider({
               current.map((note) =>
                 note.note_id === result.note_id
                   ? {
-                    ...note,
-                    quiz: result.generated_questions,
-                    analysis_result: result.analysis_result,
-                    summary_result: result.summary_result,
-                    key_concepts: result.key_concepts,
-                  }
+                      ...note,
+                      quiz: result.generated_questions,
+                      analysis_result: result.analysis_result,
+                      summary_result: result.summary_result,
+                      key_concepts: result.key_concepts,
+                    }
                   : note,
               ),
             );
 
             return;
           }
-
 
           if (eventName === "error") {
             throw new Error(formatSseError(data));
@@ -559,39 +613,35 @@ export function AppProvider({
 
           buffer += decoder.decode(value, { stream: true });
 
-          // SSE events are separated by a blank line.
           let separatorIndex = buffer.search(/\r?\n\r?\n/);
 
           while (separatorIndex !== -1) {
             const block = buffer.slice(0, separatorIndex);
-
             const separator = buffer.match(/\r?\n\r?\n/);
             const separatorLength = separator?.[0].length ?? 2;
 
             buffer = buffer.slice(separatorIndex + separatorLength);
-
             handleEvent(block);
 
             separatorIndex = buffer.search(/\r?\n\r?\n/);
           }
         }
 
-        // Process a final event even if the stream ended without a blank line.
         if (buffer.trim()) {
           handleEvent(buffer);
         }
 
         if (!receivedCompleteEvent && !controller.signal.aborted) {
-          throw new Error(
-            "The stream ended before quiz generation completed.",
-          );
+          throw new Error("The stream ended before quiz generation completed.");
         }
       } catch (error) {
         if (controller.signal.aborted) return;
 
         const message = getErrorMessage(error);
-
-        setQuizError(message);
+        if (message) {
+          setQuizError(message);
+          setActionError(message);
+        }
         setQuizStatus("error");
       } finally {
         if (streamControllerRef.current === controller) {
@@ -600,10 +650,9 @@ export function AppProvider({
         }
       }
     },
-    [openaiKey],
+    [openaiKey, token],
   );
 
-  // Abort an active stream when the authenticated session disappears.
   useEffect(() => {
     if (sessionStatus === "unauthenticated") {
       streamControllerRef.current?.abort();
@@ -626,9 +675,9 @@ export function AppProvider({
 
   const requestAi = useCallback(
     (noteId: string) => {
-
       if (!noteId.trim()) {
-        alert("Please select or open a specific note to generate a quiz.");
+        const msg = "Please select or open a specific note to generate a quiz.";
+        setActionError(msg);
         return;
       }
 
@@ -638,10 +687,9 @@ export function AppProvider({
       }
 
       router.push(`/quiz/generating/${encodeURIComponent(noteId)}`);
-
       void generateQuiz(noteId);
     },
-    [apiConfigured, generateQuiz],
+    [apiConfigured, generateQuiz, router],
   );
 
   const value = useMemo<AppContextValue>(
@@ -684,6 +732,9 @@ export function AppProvider({
       openApiModal,
       closeApiModal,
       requestAi,
+
+      actionError,
+      clearActionError,
     }),
     [
       token,
@@ -717,6 +768,8 @@ export function AppProvider({
       openApiModal,
       closeApiModal,
       requestAi,
+      clearActionError,
+      actionError,
     ],
   );
 

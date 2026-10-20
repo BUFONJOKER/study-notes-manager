@@ -7,12 +7,12 @@ import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { Button, Icon, PasswordInput } from "@/components/ui";
 
-type FormState = { name: string; user_name: string;  password: string; confirm: string };
+type FormState = { user_name: string;  password: string; confirm: string };
 
 export function RegisterForm() {
   const router = useRouter();
   const { registerUser } = useApp();
-  const [form, setForm] = useState<FormState>({ name: "", user_name: "", password: "", confirm: "" });
+  const [form, setForm] = useState<FormState>({ user_name: "", password: "", confirm: "" });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +23,7 @@ export function RegisterForm() {
   const submit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitted(true);
-    if (!form.name.trim() || form.user_name.length < 3 || form.password.length < 8 || form.password !== form.confirm) return;
+    if (!form.user_name.trim() || form.user_name.length < 3 || form.password.length < 8 || form.password !== form.confirm) return;
     setLoading(true);
     window.setTimeout(() => {
       setLoading(false);

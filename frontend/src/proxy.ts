@@ -6,8 +6,10 @@ export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   const sessionToken =
-    request.cookies.get("next-auth.session-token")?.value ??
-    request.cookies.get("__Secure-next-auth.session-token")?.value;
+    request.cookies.get("__Secure-authjs.session-token")?.value ??
+    request.cookies.get("authjs.session-token")?.value ??
+    request.cookies.get("__Secure-next-auth.session-token")?.value ??
+    request.cookies.get("next-auth.session-token")?.value;
 
   if (!sessionToken) {
     const loginUrl = new URL("/login", request.url);

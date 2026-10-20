@@ -1,16 +1,13 @@
-
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { Icon } from "@/components/ui";
 
 export function SessionExpiredAlert() {
   const [visible, setVisible] = useState(false);
   const handlingRef = useRef(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleExpiredSession = useCallback(() => {
     if (handlingRef.current) return;
@@ -28,38 +25,10 @@ export function SessionExpiredAlert() {
   useEffect(() => {
     const handleEvent = () => handleExpiredSession();
 
-    window.addEventListener(
-      "app:session-expired",
-      handleEvent,
-    );
-
-    // Check whether the NextAuth session is still valid.
-    const checkSession = async () => {
-      try {
-        const session = await getSession();
-
-        if (!session) {
-          handleExpiredSession();
-        }
-      } catch {
-        // A temporary network error is not proof that the
-        // session has expired. Let the next check retry.
-      }
-    };
-
-    void checkSession();
-
-    const interval = window.setInterval(() => {
-      void checkSession();
-    }, 60_000);
+    window.addEventListener("app:session-expired", handleEvent);
 
     return () => {
-      window.removeEventListener(
-        "app:session-expired",
-        handleEvent,
-      );
-
-      window.clearInterval(interval);
+      window.removeEventListener("app:session-expired", handleEvent);
 
       if (timerRef.current) {
         clearTimeout(timerRef.current);
@@ -80,9 +49,7 @@ export function SessionExpiredAlert() {
       </span>
 
       <div>
-        <p className="font-semibold">
-          Your session has expired
-        </p>
+        <p className="font-semibold">Your session has expired</p>
         <p className="mt-1 text-sm">
           Please log in again to continue. Redirecting to login...
         </p>

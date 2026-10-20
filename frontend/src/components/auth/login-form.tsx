@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type SubmitEvent} from "react";
+import { useState, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { cn } from "@/lib/cn";
@@ -20,27 +20,35 @@ export function LoginForm() {
     setSubmitted(true);
     setServerError("");
 
-    if(!username.trim() || password.length < 8) {
+    if (!username.trim() || password.length < 8) {
       return;
     }
 
     setLoading(true);
 
-    const result = await signIn("credentials", {
-      username: username.trim(),
-      password: password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        username: username.trim(),
+        password: password,
+        redirect: false,
+      });
 
-    setLoading(false);
-
-    if (result?.error) {
-      setServerError(result.error);
-    } else {
-      router.push(routes.dashboard);
-      router.refresh(); // Refresh the page to update the session state after successful login
+      if (result?.error) {
+        // Map NextAuth generic error codes to user-friendly messages
+        if (result.error === "CredentialsSignin") {
+          setServerError("Invalid username or password. Please try again.");
+        } else {
+          setServerError(result.error || "Failed to sign in. Please try again.");
+        }
+      } else if (result?.ok) {
+        router.push(routes.dashboard);
+        router.refresh();
+      }
+    } catch (error) {
+      setServerError("An unexpected network error occurred. Please check your connection.");
+    } finally {
+      setLoading(false);
     }
-
   };
 
   return (
@@ -51,12 +59,29 @@ export function LoginForm() {
         <h1>Sign in to Noteflow</h1>
         <p>Continue to your notes, subjects, and saved quizzes.</p>
       </div>
+
+      {/* Render the server error alert if present */}
+      {serverError && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-900"
+        >
+          {serverError}
+        </div>
+      )}
+
       <form className={cn("auth-form")} onSubmit={submit}>
         <label className={cn("auth-field")}>
           <span>Username</span>
           <div className={cn(submitted && !username.trim() ? "invalid" : "")}>
             <Icon name="user" size={18} />
-            <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Enter your username" autoComplete="username" />
+            <input
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="Enter your username"
+              autoComplete="username"
+            />
           </div>
           {submitted && !username.trim() && <small className={cn("field-error")}>Username is required</small>}
         </label>
@@ -72,9 +97,13 @@ export function LoginForm() {
           </label>
           <button type="button" className={cn("auth-link")}>Forgot password?</button>
         </div>
-        <Button className={cn("full")} type="submit" disabled={loading}>{loading ? "Signing in…" : "Sign in"}</Button>
+        <Button className={cn("full")} type="submit" disabled={loading}>
+          {loading ? "Signing in…" : "Sign in"}
+        </Button>
         <div className={cn("auth-divider")}>New to Noteflow?</div>
-        <Button className={cn("full")} variant="secondary" onClick={() => router.push(routes.register)}>Create an account</Button>
+        <Button className={cn("full")} variant="secondary" onClick={() => router.push(routes.register)}>
+          Create an account
+        </Button>
       </form>
       <div className={cn("secure-note")}>
         <Icon name="lock" size={16} />

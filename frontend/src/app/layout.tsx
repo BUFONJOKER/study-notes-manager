@@ -6,7 +6,7 @@ import AuthProvider from "@/components/SessionProvider";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { SessionExpiredAlert } from "@/components/session-expired-alert";
-
+import { GlobalErrorBanner } from "@/components/global-error-banner";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -46,6 +46,7 @@ export default function RootLayout({
           <AuthProvider>
             <AppProvider>
               <SessionExpiredAlert />
+              <GlobalErrorBanner />
               {children}
             </AppProvider>
           </AuthProvider>
