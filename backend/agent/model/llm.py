@@ -1,8 +1,10 @@
-from langchain_openai import ChatOpenAI
+"""Module for loading the language model (LLM) client."""
 
+from langchain_openai import ChatOpenAI
 
 def load_llm(api_key: str | None = None) -> ChatOpenAI:
     """Create a request-scoped ChatOpenAI client for the supplied API key."""
+
     if not api_key or not api_key.strip():
         raise ValueError("A valid OpenAI API key is required.")
 

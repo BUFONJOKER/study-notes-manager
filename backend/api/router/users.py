@@ -1,3 +1,6 @@
+"""Router for user-related endpoints."""
+
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -67,16 +70,6 @@ async def create_user(
     return new_user
 
 
-# --- Get All Users ---
-# @router.get("/", response_model=list[UserResponse])
-# async def get_all_users(
-#     db: Annotated[Session, Depends(get_db)],
-#     current_user: Annotated[User, Depends(get_current_user)],  # protected
-# ):
-#     """Get all users data protected"""
-#     return db.query(User).all()
-
-
 # --- Get Current User ---
 @router.get("/me", response_model=UserResponse)
 async def get_me(
@@ -97,26 +90,6 @@ async def get_me(
 
     return user
 
-
-# --- Get Single User ---
-# @router.get("/{user_id}", response_model=UserResponse)
-# async def get_user(
-#     user_id: int,
-#     db: Annotated[Session, Depends(get_db)],
-#     current_user: Annotated[User, Depends(get_current_user)],  # protected
-# ):
-#     """Get user Notes data protected."""
-#     user = db.query(User).filter(User.user_id == user_id).first()
-
-#     if not user:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
-#     note = db.query(Note).filter(Note.user_id == user_id).first()
-
-#     if not note:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No notes found for this user")
-
-#     return note
 
 
 # --- Update User ---

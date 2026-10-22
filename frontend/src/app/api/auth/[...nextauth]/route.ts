@@ -83,13 +83,6 @@ export const authOptions: NextAuthOptions = {
             }
           }
 
-          console.error(
-            "Authentication error:",
-            axios.isAxiosError(error)
-              ? error.message
-              : "Unexpected authentication error"
-          );
-
           throw new Error("Failed to authenticate with the server.");
         }
       },

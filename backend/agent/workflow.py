@@ -1,4 +1,4 @@
-
+"""Workflow definition for the study notes analysis and quiz-generation process."""
 from functools import partial
 
 from langgraph.graph import START, END, StateGraph

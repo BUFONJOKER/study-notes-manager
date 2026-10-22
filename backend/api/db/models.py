@@ -1,3 +1,5 @@
+"""SQLAlchemy models for the database tables."""
+
 import datetime
 
 from sqlalchemy import DateTime, Integer, JSON, String, func
@@ -8,6 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class Note(Base):
+    """SQLAlchemy model for the 'notes' table."""
     __tablename__ = "notes"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
@@ -37,6 +40,7 @@ class Note(Base):
     )
 
 class User(Base):
+    """SQLAlchemy model for the 'users' table."""
     __tablename__ = "users"
 
     user_id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)

@@ -1,6 +1,6 @@
+"""Schema definition for structured output containing quiz questions."""
 
 from pydantic import BaseModel, Field
-
 
 class QuizGenerationOutput(BaseModel):
     """Structured output containing quiz questions."""

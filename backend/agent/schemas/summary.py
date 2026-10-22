@@ -1,6 +1,6 @@
+"""Schema definition for structured output of the study notes summary."""
 
 from pydantic import BaseModel, Field
-
 
 class SummaryOutput(BaseModel):
     """Structured output for the study notes summary."""

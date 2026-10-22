@@ -1,3 +1,6 @@
+"""
+Schemas for note-related data structures.
+"""
 from pydantic import BaseModel, Field, field_serializer, ConfigDict
 from datetime import datetime
 

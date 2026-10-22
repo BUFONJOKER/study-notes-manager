@@ -1,8 +1,8 @@
+"""Schema definition for the agent state in the study notes workflow."""
 
 from pydantic import BaseModel, Field
 
 from agent.schemas.analysis import StudyNotesAnalysis
-
 
 class AgentState(BaseModel):
     """State passed between nodes in the study notes workflow."""

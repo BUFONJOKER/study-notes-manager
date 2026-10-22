@@ -199,7 +199,7 @@ export function AppProvider({
         if (message) {
           setActionError(message);
         }
-        console.error("Global Catch Event Triggered:", error);
+
         return undefined;
       }
     };
@@ -264,7 +264,7 @@ export function AppProvider({
           if (message) {
             setActionError(message);
           }
-          console.error("Failed to load user data:", error);
+
         }
       }
     }
@@ -585,12 +585,12 @@ export function AppProvider({
               current.map((note) =>
                 note.note_id === result.note_id
                   ? {
-                      ...note,
-                      quiz: result.generated_questions,
-                      analysis_result: result.analysis_result,
-                      summary_result: result.summary_result,
-                      key_concepts: result.key_concepts,
-                    }
+                    ...note,
+                    quiz: result.generated_questions,
+                    analysis_result: result.analysis_result,
+                    summary_result: result.summary_result,
+                    key_concepts: result.key_concepts,
+                  }
                   : note,
               ),
             );

@@ -1,6 +1,6 @@
+"""Schema definition for structured analysis of study notes."""
 
 from pydantic import BaseModel, Field
-
 
 class StudyNotesAnalysis(BaseModel):
     """Structured analysis of study notes."""

@@ -1,3 +1,7 @@
+"""
+Utility functions for authentication and authorization.
+"""
+
 from datetime import datetime, timedelta, timezone
 import jwt
 from jwt.exceptions import InvalidTokenError
@@ -19,10 +23,16 @@ SECRET_KEY = settings.SECRET_KEY  # openssl rand -hex 32
 ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
+"""
+Initialize the OAuth2 password bearer.
+"""
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    """
+    Create a JWT access token with the provided data and expiration time.
+    """
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=15))
     to_encode.update({"exp": expire})
@@ -33,6 +43,9 @@ async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
     db: Annotated[Session, Depends(get_db)],
 ):
+    """
+    Retrieve the current user based on the provided authentication token.
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

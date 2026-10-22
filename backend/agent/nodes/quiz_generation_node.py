@@ -1,3 +1,4 @@
+"""Node for generating quiz questions based on the study notes summary and key concepts."""
 
 from langchain_core.prompts import ChatPromptTemplate
 

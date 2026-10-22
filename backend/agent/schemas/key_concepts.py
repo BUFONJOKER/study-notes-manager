@@ -1,6 +1,6 @@
+"""Schema definition for structured output containing key concepts."""
 
 from pydantic import BaseModel, Field
-
 
 class KeyConceptsOutput(BaseModel):
     """Structured output containing key concepts."""

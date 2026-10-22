@@ -36,27 +36,35 @@ GPT_5_NANO_INPUT_USD_PER_MILLION = 0.05
 GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION = 0.005
 GPT_5_NANO_OUTPUT_USD_PER_MILLION = 0.40
 
+# current user dependency for protected endpoints
 current_user_dep = Annotated[User, Depends(get_current_user)]
+
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 DBDep = Annotated[Session, Depends(get_db)]
 
 
 def _usage_telemetry(usage_metadata: dict) -> dict:
     """Calculate GPT-5 nano usage and standard API pricing."""
+
     input_tokens = sum(
         usage.get("input_tokens", 0) for usage in usage_metadata.values()
     )
+
     output_tokens = sum(
         usage.get("output_tokens", 0) for usage in usage_metadata.values()
     )
+
     total_tokens = sum(
         usage.get("total_tokens", 0) for usage in usage_metadata.values()
     )
+
     cached_input_tokens = sum(
         usage.get("input_token_details", {}).get("cache_read", 0)
         for usage in usage_metadata.values()
     )
+
     uncached_input_tokens = max(input_tokens - cached_input_tokens, 0)
+
     estimated_cost_usd = (
         (uncached_input_tokens / 1_000_000) * GPT_5_NANO_INPUT_USD_PER_MILLION
         + (cached_input_tokens / 1_000_000) * GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION
@@ -71,34 +79,11 @@ def _usage_telemetry(usage_metadata: dict) -> dict:
     }
 
 
-# @router.get("/get_all_names", response_model=list[str])
-# async def get_all_names(db: DBDep):
-#     """Return all unique user names that have notes."""
-
-#     try:
-#         user_names = db.query(Note.user_name).distinct().all()
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-
-#     if not user_names:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="No user names found in the database.",
-#         )
-
-#     return [name[0] for name in user_names]
-
 
 @router.get("/read_note", response_model=list[NoteResponse])
 async def read_notes(db: DBDep, current_user: current_user_dep):
     """Return all notes belonging to a user logged in. This endpoint is protected and requires authentication."""
 
-    # Users can only access their own notes.
-    # if current_user.user_id != user_id:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_403_FORBIDDEN,
-    #         detail="You can only access your own notes.",
-    #     )
 
     notes = (
         db.query(Note)
@@ -118,6 +103,7 @@ def create_note(request: NoteCreate, db: DBDep, current_user: current_user_dep):
 
     try:
         existing_note = db.query(Note).filter(Note.note_id == request.note_id).first()
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
@@ -149,6 +135,7 @@ def create_note(request: NoteCreate, db: DBDep, current_user: current_user_dep):
         db.add(db_note)
         db.commit()
         db.refresh(db_note)
+
     except Exception as e:
         db.rollback()
         raise HTTPException(
@@ -169,6 +156,7 @@ def delete_note(note_id: str, db: DBDep, current_user: current_user_dep):
             .filter(Note.note_id == note_id, Note.user_id == current_user.user_id)
             .first()
         )
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
@@ -181,6 +169,7 @@ def delete_note(note_id: str, db: DBDep, current_user: current_user_dep):
     try:
         db.delete(db_note)
         db.commit()
+
     except Exception:
         db.rollback()
         raise HTTPException(
@@ -194,12 +183,14 @@ def update_note(
     note_id: str, request: NoteUpdate, db: DBDep, current_user: current_user_dep
 ):
     """Update a note's title, subject, and content. This endpoint is protected and requires authentication."""
+
     try:
         db_note = (
             db.query(Note)
             .filter(Note.note_id == note_id, Note.user_id == current_user.user_id)
             .first()
         )
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
@@ -225,6 +216,7 @@ def update_note(
     try:
         db.commit()
         db.refresh(db_note)
+
     except Exception:
         db.rollback()
         raise HTTPException(
@@ -237,6 +229,7 @@ def update_note(
 
 def _initial_agent_state(db_note: Note) -> AgentState:
     """Build the workflow state from a database note."""
+
     return AgentState(
         note_id=db_note.note_id,
         note_title=db_note.title,
@@ -247,18 +240,23 @@ def _initial_agent_state(db_note: Note) -> AgentState:
 
 def _save_quiz(db: Session, db_note: Note, result: dict) -> None:
     """Save generated quiz questions to a note."""
+
     analysis_result = result.get("analysis_result")
+
     db_note.analysis_result = (
         analysis_result.model_dump()
         if hasattr(analysis_result, "model_dump")
         else analysis_result
     )
+
     db_note.summary_result = result.get("summary_result")
     db_note.key_concepts = result.get("key_concepts")
     db_note.quiz = json.dumps(result["generated_questions"])
+
     try:
         db_note.updated_at = datetime.now()
         db.commit()
+        db.refresh(db_note)
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

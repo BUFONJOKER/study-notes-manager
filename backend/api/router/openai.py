@@ -1,4 +1,5 @@
-# Location: api/routers/openai.py
+"""Router for OpenAI-related endpoints."""
+
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from openai import OpenAI, AuthenticationError, APIConnectionError, RateLimitError
 from typing import Annotated, Optional

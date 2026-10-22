@@ -1,3 +1,4 @@
+"""Node for generating a concise summary from the analysis of study notes."""
 
 from langchain_core.prompts import ChatPromptTemplate
 

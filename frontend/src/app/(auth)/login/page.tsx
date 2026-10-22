@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/login-form";
 import { LoginSessionMessage } from "@/components/login-session-message";
 
-// Inside your login page JSX, above the login form:
-
 export const metadata: Metadata = { title: "Sign in" };
 
 export default function LoginPage() {
