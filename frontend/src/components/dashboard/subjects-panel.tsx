@@ -36,7 +36,7 @@ export function SubjectsPanel({ notes }: { notes: NoteResponse[] }) {
           return (
             <button
               key={subject.name}
-              onClick={() => router.push(routes.notes)}
+              onClick={() => router.push(routes.notes + `?subject=${subject.name}`)}
               className={cn(`subject-card ${subject.tone}`)}
             >
               <span className={cn("subject-code")}>{subject.code}</span>

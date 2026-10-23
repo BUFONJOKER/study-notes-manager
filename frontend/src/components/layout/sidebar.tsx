@@ -33,17 +33,17 @@ export function Sidebar() {
           <span>All notes</span>
           <span className={cn("nav-count")}>{notes.length}</span>
         </button>
-        <button className={cn(nav.quiz ? "active" : "")} onClick={() => router.push(routes.quiz)}>
+        {/* <button className={cn(nav.quiz ? "active" : "")} onClick={() => router.push(routes.quiz)}>
           <Icon name="sparkle" />
           <span>Quiz library </span>
           <span className={cn("nav-count")}>{notes.filter(note => note.quiz !== null).length}</span>
-        </button>
+        </button> */}
       </nav>
 
       <div className={cn("side-section")}>
         <span className={cn("eyebrow")}>Subjects</span>
         {subjectCounts.map((subject) => (
-          <button key={subject.name}>
+          <button key={subject.name} onClick={() => router.push(routes.notes + `?subject=${subject.name}`)} className={cn("subject-link")}>
             <i className={cn(`subject-dot dot-${subject.tone}`)} />
             {subject.name}
             <span>{subject.notes}</span>
@@ -68,7 +68,7 @@ export function Sidebar() {
           <strong>{profile?.user_name}</strong>
           <small>@{profile?.user_name}</small>
         </span>
-        <Icon name="more" />
+        {/* <Icon name="more" /> */}
       </button>
     </aside>
   );

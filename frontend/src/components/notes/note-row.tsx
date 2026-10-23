@@ -6,10 +6,11 @@ import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { Badge, Icon } from "@/components/ui";
 import type { NoteResponse } from "@/types/notes";
-
 export function NoteRow({ note }: { note: NoteResponse }) {
   const router = useRouter();
   const { apiConfigured, requestAi, requestDelete } = useApp();
+
+
 
   return (
     <div className={cn("note-table-row")}>
@@ -36,7 +37,7 @@ export function NoteRow({ note }: { note: NoteResponse }) {
         </button>
         <button title="Edit note" onClick={() => router.push(routes.editNote(note.note_id))}><Icon name="edit" size={18} /></button>
         <button title="Delete note" onClick={() => requestDelete(note)}><Icon name="trash" size={18} /></button>
-        <button title="More actions"><Icon name="more" size={18} /></button>
+        {/* <button title="More actions"><Icon name="more" size={18} /></button> */}
       </span>
     </div>
   );

@@ -28,11 +28,11 @@ export function Header({ title, onMenu }: { title: string; onMenu: () => void })
           <Icon name={apiConfigured ? "check" : "lock"} size={14} />
           <span>{apiConfigured ? "AI ready" : "AI locked"}</span>
         </button>
-        <label className={cn("global-search")}>
+        {/* <label className={cn("global-search")}>
           <Icon name="search" size={18} />
           <input aria-label="Search all notes" placeholder="Search anything..." />
           <kbd>⌘ K</kbd>
-        </label>
+        </label> */}
         <Button icon="plus" onClick={() => router.push(routes.newNote)}>New note</Button>
         <button className={cn("avatar mobile-avatar")} onClick={() => router.push(routes.account)}>
           {getInitials(profile?.user_name)}

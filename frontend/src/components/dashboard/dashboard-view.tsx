@@ -10,17 +10,39 @@ import { EmptyDashboard } from "./empty-dashboard";
 import { RecentNotesPanel } from "./recent-notes-panel";
 import { StatsGrid } from "./stats-grid";
 import { SubjectsPanel } from "./subjects-panel";
+import { useEffect, useState } from "react";
 
 export function DashboardView() {
-  const router = useRouter();
+    const router = useRouter();
   const { notes, selectedNote, profile, isNewUser, requestAi, apiConfigured } = useApp();
 
   if (isNewUser) return <EmptyDashboard />;
 
+  const [formattedDate, setFormattedDate] = useState<string>('');
+
+  useEffect(() => {
+    const date = new Date();
+
+    // Format options for: "Monday, September 23"
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'long',  // "Monday"
+      month: 'long',    // "September"
+      day: 'numeric',   // "23"
+      year: 'numeric'
+    };
+
+    // Format the date using the browser's locale
+    const result = new Intl.DateTimeFormat('en-US', options).format(date);
+    setFormattedDate(result);
+  }, []);
+
+
+
+
   return (
     <div className={cn("page")}>
       <PageHeading
-        eyebrow="Monday, September 23"
+        eyebrow={formattedDate}
         title={`Good morning, ${profile?.user_name.split(" ")[0]}`}
         description="Here’s what’s happening in your study space."
       >

@@ -8,6 +8,8 @@ import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { Button, Icon, PageHeading } from "@/components/ui";
 import { NoteRow } from "./note-row";
+import {useSearchParams} from "next/navigation";
+import {useEffect} from "react";
 
 const ALL_SUBJECTS = "All subjects";
 
@@ -16,12 +18,20 @@ export function NotesList() {
   const { notes } = useApp();
   const [query, setQuery] = useState("");
   const [subject, setSubject] = useState(ALL_SUBJECTS);
+  const searchParams = useSearchParams();
+  const urlSubject = searchParams.get("subject");
+  // If a subject is specified in the URL then only notes for that subject should be shown, and the subject filter should be disabled.
+  useEffect(() => {
+    setSubject(urlSubject || ALL_SUBJECTS);
+  }, [urlSubject]);
+
+
 
   const visible = useMemo(
     () =>
       notes.filter(
         (n) =>
-          (subject === ALL_SUBJECTS || n.subject === subject) &&
+          (subject === ALL_SUBJECTS || n.subject === subject ) &&
           `${n.title} ${n.subject} ${n.note_id}`.toLowerCase().includes(query.toLowerCase()),
       ),
     [notes, query, subject],

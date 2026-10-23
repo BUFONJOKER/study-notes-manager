@@ -1,0 +1,5 @@
+session expired ui is not working correctly. Need to fix the session expired UI to properly handle user sessions and provide a better user experience.
+automated testing and continuous integration is not implemented. Need to set up automated tests for both frontend and backend, and integrate them into a CI/CD pipeline to ensure code quality and catch issues early.
+no CI/CD pipeline is in place. Need to set up a CI/CD pipeline to automate the build, test, and deployment processes for the application.
+overall app and llm evaluation
+app is very slow to start both frontend and backend. It takes a long time to load the initial data and the UI is unresponsive during this time. Need to investigate performance bottlenecks and optimize the code for faster startup.
