@@ -1,5 +1,3 @@
-// types/openai.ts
-
 /** Payload structure to send an OpenAI API key. */
 export type OpenAIKeyRequest = {
   api_key: string;

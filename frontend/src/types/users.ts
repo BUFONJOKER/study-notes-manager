@@ -1,5 +1,3 @@
-// types/user.ts
-
 /** Schema for creating a new user. */
 export type UserCreate = {
   user_name: string;

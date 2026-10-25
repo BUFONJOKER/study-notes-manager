@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { SessionExpiredAlert } from "@/components/session-expired-alert";
 import { GlobalErrorBanner } from "@/components/global-error-banner";
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",

@@ -1,5 +1,7 @@
 "use client";
-
+// all the apis fetch and state management are handled in this context provider
+// This context is used to manage the state of the application, including user authentication, notes, and quiz generation.
+// It provides a centralized place to manage the state and actions related to the application, making it easier to maintain and update the codebase.
 import {
   createContext,
   useCallback,

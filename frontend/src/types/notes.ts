@@ -1,5 +1,3 @@
-// types/note.ts
-
 export type StudyNotesAnalysis = {
   main_theme: string;
   key_points: string[];
