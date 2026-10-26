@@ -1,12 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { subjects } from "@/data/subjects";
 import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { Icon } from "@/components/ui";
 import { NoteResponse } from "@/types/notes";
-
+import { subjects } from "@/data/subjects";
 
 export function SubjectsPanel({ notes }: { notes: NoteResponse[] }) {
   const router = useRouter();

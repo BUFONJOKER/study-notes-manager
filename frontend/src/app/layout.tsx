@@ -1,9 +1,8 @@
-
 import type { Metadata } from "next";
 import { Inter, Newsreader } from "next/font/google";
 import { AppProvider } from "@/context/app-context";
 import AuthProvider from "@/components/SessionProvider";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider } from "@/components/theme-provider"; // <-- Updated import path
 import "./globals.css";
 import { SessionExpiredAlert } from "@/components/session-expired-alert";
 import { GlobalErrorBanner } from "@/components/global-error-banner";

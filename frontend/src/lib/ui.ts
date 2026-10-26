@@ -1,142 +1,390 @@
 // Class-name alias map. Every key can be used inside cn("...") and expands to Tailwind utilities.
+
 export const ui: Record<string, string> = {
+
   // Application layout
+
   "app-shell":
     "min-h-screen bg-stone-100 text-stone-900 dark:bg-slate-950 dark:text-slate-100",
+
   icon: "block shrink-0",
+
   sidebar:
-    "fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-900 p-4 pb-4 pt-6",
-  brand: "flex items-center gap-3 px-2 [&_strong]:block [&_strong]:font-heading [&_strong]:text-xl [&_strong]:leading-none [&_span]:mt-1 [&_span]:block [&_span]:text-[10px] [&_span]:uppercase [&_span]:tracking-widest [&_span]:text-stone-500",
-  "brand-mark": "grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-800 text-white shadow-md",
-  "side-nav": "mt-8 grid gap-1 [&_button]:flex [&_button]:min-h-11 [&_button]:w-full [&_button]:items-center [&_button]:gap-3 [&_button]:rounded-xl [&_button]:px-3 [&_button]:text-left [&_button]:text-sm [&_button]:text-stone-600 [&_button]:hover:bg-stone-200 [&_button]:hover:text-emerald-800",
-  "nav-count": "ml-auto min-w-6 rounded-full bg-white/70 px-2 py-0.5 text-center text-xs",
-  "side-section": "mt-6 px-1 [&>span]:mx-2 [&>span]:mb-2 [&_button]:flex [&_button]:min-h-9 [&_button]:w-full [&_button]:items-center [&_button]:gap-3 [&_button]:rounded-lg [&_button]:px-2 [&_button]:text-xs [&_button]:text-stone-600 [&_button_span:last-child]:ml-auto [&_button_span:last-child]:text-[11px] [&_button_span:last-child]:text-stone-500",
-  eyebrow: "block text-xs font-bold uppercase leading-tight tracking-wider text-stone-500",
+    "fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-4 pb-4 pt-6",
+
+  brand: "flex items-center gap-3 px-2 [&_strong]:block [&_strong]:font-heading [&_strong]:text-xl [&_strong]:leading-none [&_span]:mt-1 [&_span]:block [&_span]:text-[10px] [&_span]:uppercase [&_span]:tracking-widest [&_span]:text-stone-500 dark:[&_span]:text-slate-400",
+
+  "brand-mark": "grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-700 dark:bg-emerald-600 text-white shadow-md",
+
+  "side-nav": "mt-8 grid gap-1 [&_button]:flex [&_button]:min-h-11 [&_button]:w-full [&_button]:items-center [&_button]:gap-3 [&_button]:rounded-xl [&_button]:px-3 [&_button]:text-left [&_button]:text-sm [&_button]:text-stone-600 dark:[&_button]:text-slate-300 [&_button]:hover:bg-stone-200 dark:[&_button]:hover:bg-slate-800 [&_button]:hover:text-emerald-800 dark:[&_button]:hover:text-emerald-300 [&_button:focus-visible]:outline-none [&_button:focus-visible]:ring-2 [&_button:focus-visible]:ring-emerald-500",
+
+  "nav-count": "ml-auto min-w-6 rounded-full bg-white/70 dark:bg-slate-800/80 px-2 py-0.5 text-center text-xs text-stone-700 dark:text-slate-300",
+
+  "side-section": "mt-6 px-1 [&>span]:mx-2 [&>span]:mb-2 [&_button]:flex [&_button]:min-h-9 [&_button]:w-full [&_button]:items-center [&_button]:gap-3 [&_button]:rounded-lg [&_button]:px-2 [&_button]:text-xs [&_button]:text-stone-600 dark:[&_button]:text-slate-300 [&_button_span:last-child]:ml-auto [&_button_span:last-child]:text-[11px] [&_button_span:last-child]:text-stone-500 dark:[&_button_span:last-child]:text-slate-400",
+
+  eyebrow: "block text-xs font-bold uppercase leading-tight tracking-wider text-stone-500 dark:text-slate-400",
+
   "subject-dot": "inline-block size-2 rounded-full",
+
   "dot-mint": "bg-emerald-500", "dot-amber": "bg-amber-500", "dot-lavender": "bg-purple-400", "dot-blue": "bg-sky-400",
-  "sidebar-tip": "mt-auto rounded-xl border border-stone-200 bg-white/55 p-4 [&>strong]:text-xs [&>p]:my-1 [&>p]:mb-2 [&>p]:text-xs [&>p]:leading-normal [&>p]:text-stone-500 [&>button]:flex [&>button]:items-center [&>button]:text-xs [&>button]:font-bold [&>button]:text-emerald-800",
-  "api-tip": "border-amber-200 bg-amber-50/50", configured: "border-emerald-200 bg-emerald-50/50",
-  "tip-icon": "mb-2 grid size-8 place-items-center rounded-lg bg-emerald-100 text-emerald-800",
-  profile: "mt-4 flex min-h-12 items-center gap-2 border-t border-stone-200 px-2 py-2 text-left [&>span:nth-child(2)]:min-w-0 [&>span:nth-child(2)]:flex-1 [&_strong]:block [&_strong]:truncate [&_strong]:text-xs [&_small]:mt-0.5 [&_small]:block [&_small]:truncate [&_small]:text-[10px] [&_small]:text-stone-500",
+
+  "sidebar-tip": "mt-auto rounded-xl border border-stone-200 dark:border-slate-800 bg-white/55 dark:bg-slate-900/70 p-4 [&>strong]:text-xs [&>strong]:text-stone-800 dark:[&>strong]:text-slate-200 [&>p]:my-1 [&>p]:mb-2 [&>p]:text-xs [&>p]:leading-normal [&>p]:text-stone-500 dark:[&>p]:text-slate-400 [&>button]:flex [&>button]:items-center [&>button]:text-xs [&>button]:font-bold [&>button]:text-emerald-800 dark:[&>button]:text-emerald-400",
+
+  "api-tip": "border-amber-200 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/20", configured: "border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/20",
+
+  "tip-icon": "mb-2 grid size-8 place-items-center rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300",
+
+  profile: "mt-4 flex min-h-12 items-center gap-2 border-t border-stone-200 dark:border-slate-800 px-2 py-2 text-left [&>span:nth-child(2)]:min-w-0 [&>span:nth-child(2)]:flex-1 [&_strong]:block [&_strong]:truncate [&_strong]:text-xs [&_small]:mt-0.5 [&_small]:block [&_small]:truncate [&_small]:text-[10px] [&_small]:text-stone-500 dark:[&_small]:text-slate-400",
+
   avatar: "grid size-9 shrink-0 place-items-center rounded-full bg-amber-700 text-xs font-bold text-white",
+
   "main-shell": "ml-64 min-w-0 max-lg:ml-52 max-md:ml-0",
+
   topbar:
-    "sticky top-0 z-20 flex h-18 items-center gap-4 border-b border-stone-200 dark:border-slate-700 bg-stone-100/90 dark:bg-slate-950/90 px-8 backdrop-blur-xl",
+    "sticky top-0 z-20 flex h-18 items-center gap-4 border-b border-stone-200 dark:border-slate-800 bg-stone-100/90 dark:bg-slate-950/90 px-8 backdrop-blur-xl",
+
   "top-actions": "ml-auto flex items-center gap-2.5",
-  "global-search": "flex h-10 w-64 items-center gap-2 rounded-xl border border-stone-200 bg-white px-2.5 text-stone-500 max-lg:w-52 max-md:hidden [&_input]:min-w-0 [&_input]:flex-1 [&_input]:border-0 [&_input]:text-xs [&_input]:text-stone-900 [&_input]:outline-none [&_kbd]:rounded [&_kbd]:bg-stone-100 [&_kbd]:px-1.5 [&_kbd]:py-0.5 [&_kbd]:text-[10px]",
-  btn: "inline-flex min-h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 text-xs font-semibold leading-none transition disabled:cursor-not-allowed disabled:opacity-50",
-  "btn-primary": "bg-emerald-800 text-white shadow-sm hover:-translate-y-px hover:bg-emerald-900",
+
+  "global-search": "flex h-10 w-64 items-center gap-2 rounded-xl border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 text-stone-500 dark:text-slate-400 max-lg:w-52 max-md:hidden [&_input]:min-w-0 [&_input]:flex-1 [&_input]:border-0 [&_input]:text-xs [&_input]:text-stone-900 dark:[&_input]:text-slate-100 [&_input]:outline-none [&_kbd]:rounded [&_kbd]:bg-stone-100 dark:[&_kbd]:bg-slate-800 [&_kbd]:px-1.5 [&_kbd]:py-0.5 [&_kbd]:text-[10px] [&_kbd]:text-stone-600 dark:[&_kbd]:text-slate-300",
+
+  btn: "inline-flex min-h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 text-xs font-semibold leading-none transition disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
+
+  "btn-primary": "bg-emerald-800 dark:bg-emerald-700 text-white shadow-sm hover:-translate-y-px hover:bg-emerald-900 dark:hover:bg-emerald-600",
+
   "btn-secondary":
     "border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-900 dark:text-slate-100 hover:bg-stone-50 dark:hover:bg-slate-700",
-  "btn-ghost": "bg-transparent text-emerald-800", "btn-danger": "bg-rose-600 text-white",
-  "mobile-menu": "hidden size-10 place-items-center rounded-xl max-md:grid",
+
+  "btn-ghost": "bg-transparent text-emerald-800 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50",
+
+  "btn-danger": "bg-rose-600 text-white hover:bg-rose-700",
+
+  "mobile-menu": "hidden size-10 place-items-center rounded-xl max-md:grid text-stone-700 dark:text-slate-200",
+
   "mobile-brand": "hidden max-md:block max-md:[&_.brand-mark]:size-8 max-md:[&_.brand>div:last-child]:hidden",
-  "mobile-avatar": "hidden max-sm:grid", "icon-button": "border-0 bg-transparent",
-  page: "mx-auto w-full max-w-7xl px-8 pb-16 pt-10 max-md:px-6 max-md:pb-12 max-md:pt-8 max-sm:px-4 max-sm:pb-8 max-sm:pt-6",
-  "page-heading": "mb-6 flex items-end justify-between gap-6 max-sm:mb-5 max-sm:flex-col max-sm:items-start max-sm:gap-4 [&_h1]:font-heading [&_h1]:text-3xl [&_h1]:leading-tight [&_h1]:tracking-tight [&_p]:mt-2 [&_p]:text-sm [&_p]:text-stone-600",
+
+  "mobile-avatar": "hidden max-sm:grid",
+
+  "icon-button": "border-0 bg-transparent",
+
+  page: "mx-auto w-full max-w-[88rem] px-8 pb-16 pt-10 max-md:px-6 max-md:pb-12 max-md:pt-8 max-sm:px-4 max-sm:pb-8 max-sm:pt-6",
+
+  "page-heading": "mb-6 flex items-end justify-between gap-6 max-sm:mb-5 max-sm:flex-col max-sm:items-start max-sm:gap-4 [&_h1]:font-heading [&_h1]:text-3xl [&_h1]:leading-tight [&_h1]:tracking-tight [&_h1]:text-stone-900 dark:[&_h1]:text-slate-100 [&_p]:mt-2 [&_p]:text-sm [&_p]:text-stone-600 dark:[&_p]:text-slate-400",
+
   "heading-actions": "flex gap-2 max-sm:grid max-sm:w-full max-sm:grid-cols-2",
+
   panel:
-    "rounded-2xl border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm",
+    "rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm",
 
   "stats-grid": "mb-4 grid grid-cols-4 gap-3 max-lg:grid-cols-2 max-sm:gap-2",
-  "stat-card": "flex min-h-32 items-start gap-4 rounded-xl border border-stone-200 bg-white p-5 max-sm:min-h-32 max-sm:flex-col max-sm:gap-2.5 max-sm:p-4 [&>div:last-child]:grid [&_span]:text-xs [&_span]:text-stone-600 [&_strong]:my-1 [&_strong]:text-2xl [&_strong]:leading-tight [&_small]:text-[10px] [&_small]:text-stone-500",
+
+  "stat-card": "flex min-h-32 items-start gap-4 rounded-xl border border-stone-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 max-sm:min-h-32 max-sm:flex-col max-sm:gap-2.5 max-sm:p-4 [&>div:last-child]:grid [&_span]:text-xs [&_span]:text-stone-600 dark:[&_span]:text-slate-400 [&_strong]:my-1 [&_strong]:text-2xl [&_strong]:leading-tight [&_strong]:text-stone-900 dark:[&_strong]:text-slate-100 [&_small]:text-[10px] [&_small]:text-stone-500 dark:[&_small]:text-slate-400",
+
   "stat-icon": "grid size-10 place-items-center rounded-xl",
-  green: "bg-emerald-100 text-emerald-800", gold: "bg-amber-100 text-amber-800", purple: "bg-purple-100 text-purple-800", blue: "bg-sky-100 text-sky-800",
+
+  green: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300",
+
+  gold: "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300",
+
+  purple: "bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300",
+
+  blue: "bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300",
+
   "dashboard-grid": "grid grid-cols-[minmax(0,1.55fr)_minmax(300px,.8fr)] gap-4 max-md:grid-cols-1 max-sm:gap-3",
-  "panel-header": "flex min-h-18 items-center justify-between gap-4 border-b border-stone-100 px-5 py-4 max-sm:p-4 [&_h2]:text-sm [&_h2]:font-semibold [&_p]:mt-1 [&_p]:text-xs [&_p]:text-stone-500 [&_select]:min-h-9 [&_select]:rounded-lg [&_select]:border [&_select]:border-stone-200 [&_select]:bg-white [&_select]:px-2.5 [&_select]:text-xs",
-  "text-button": "flex min-h-10 items-center gap-1 bg-transparent px-1 text-xs font-bold text-emerald-800",
+
+  // [FIX #1]: Study activity dropdown high contrast in dark mode
+  "panel-header": "flex min-h-18 items-center justify-between gap-4 border-b border-stone-100 dark:border-slate-800 px-5 py-4 max-sm:p-4 [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:text-stone-900 dark:[&_h2]:text-slate-100 [&_p]:mt-1 [&_p]:text-xs [&_p]:text-stone-500 dark:[&_p]:text-slate-400 [&_select]:min-h-9 [&_select]:rounded-lg [&_select]:border [&_select]:border-stone-200 dark:[&_select]:border-slate-700 [&_select]:bg-white dark:[&_select]:bg-slate-800 [&_select]:px-2.5 [&_select]:text-xs [&_select]:text-stone-900 dark:[&_select]:text-slate-100 [&_select]:outline-none",
+
+  "text-button": "flex min-h-10 items-center gap-1 bg-transparent px-1 text-xs font-bold text-emerald-800 dark:text-emerald-400 hover:underline",
+
   "recent-list": "px-2 py-1 max-sm:px-1.5",
-  "recent-row": "flex min-h-16 w-full items-center gap-3 border-b border-stone-100 bg-transparent px-2 py-2 text-left last:border-0 hover:bg-stone-50 max-sm:min-h-18",
+
+  // [FIX #4]: Standardized consistent borders across lists & rows
+  "recent-row": "flex min-h-16 w-full items-center gap-3 border-b border-stone-100 dark:border-slate-800/80 bg-transparent px-2 py-2 text-left last:border-0 hover:bg-stone-50 dark:hover:bg-slate-800/60 max-sm:min-h-18 transition-colors",
+
   "note-glyph": "grid size-10 shrink-0 place-items-center rounded-xl",
-  mint: "bg-emerald-100 text-emerald-800", amber: "bg-amber-100 text-amber-800", lavender: "bg-purple-100 text-purple-800", rose: "bg-rose-100 text-rose-800",
-  "recent-main": "min-w-0 flex-1 [&>strong]:mb-1 [&>strong]:block [&>strong]:truncate [&>strong]:text-xs [&>span]:flex [&>span]:items-center [&>span]:gap-2.5 [&_small]:text-[10px] [&_small]:text-stone-500",
-  badge: "inline-block w-fit max-w-full [overflow-wrap:anywhere] rounded-full bg-stone-100 px-2 py-1 text-[10px] font-semibold leading-none text-stone-600",
-  "badge-mint": "bg-emerald-100 text-emerald-800", "badge-amber": "bg-amber-100 text-amber-800", "badge-lavender": "bg-purple-100 text-purple-800", "badge-blue": "bg-sky-100 text-sky-800", "badge-rose": "bg-rose-100 text-rose-800",
-  "quiz-ready": "flex items-center gap-1 whitespace-nowrap rounded-lg bg-purple-50 px-2 py-1 text-[10px] font-semibold text-purple-700 max-sm:hidden",
-  chart: "flex h-44 items-stretch gap-2.5 border-b border-stone-100 px-5 pb-3 pt-6",
-  "bar-wrap": "flex h-full flex-1 flex-col items-center justify-end gap-2 [&_span]:text-[10px] [&_span]:text-stone-500",
-  bar: "w-full max-w-6 rounded-t-md bg-stone-200 transition", peak: "bg-emerald-800",
-  "activity-foot": "flex min-h-14 items-center justify-between px-5 py-3 text-xs text-stone-500 [&_span]:flex [&_span]:items-center [&_span]:gap-1.5 [&_strong]:font-medium [&_strong]:text-stone-700",
-  "subjects-panel": "mt-4 max-sm:mt-3", "subject-cards": "grid grid-cols-4 gap-2.5 p-3 max-lg:grid-cols-2 max-md:grid-cols-4 max-sm:grid-cols-2 max-sm:p-2.5",
-  "subject-card": "flex min-h-16 min-w-0 items-center gap-3 rounded-xl p-3 text-left max-sm:min-h-16 [&>span:nth-child(2)]:min-w-0 [&>span:nth-child(2)]:flex-1 [&_strong]:block [&_strong]:truncate [&_strong]:text-xs [&_small]:mt-1 [&_small]:block [&_small]:truncate [&_small]:text-[10px] [&_small]:text-stone-500",
-  "subject-code": "grid size-9 place-items-center rounded-xl border border-black/5 bg-white/55 text-[10px] font-bold",
-  toolbar: "mb-3 grid grid-cols-[minmax(260px,1fr)_180px_180px] gap-2.5 max-sm:grid-cols-2 [&_select]:min-h-11 [&_select]:rounded-xl [&_select]:border [&_select]:border-stone-200 [&_select]:bg-white [&_select]:px-3 [&_select]:text-xs",
+
+  mint: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300",
+
+  amber: "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300",
+
+  lavender: "bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300",
+
+  rose: "bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300",
+
+  "recent-main": "min-w-0 flex-1 [&>strong]:mb-1 [&>strong]:block [&>strong]:truncate [&>strong]:text-xs [&>strong]:text-stone-900 dark:[&>strong]:text-slate-100 [&>span]:flex [&>span]:items-center [&>span]:gap-2.5 [&_small]:text-[10px] [&_small]:text-stone-500 dark:[&_small]:text-slate-400",
+
+  badge: "inline-block w-fit max-w-full [overflow-wrap:anywhere] rounded-full bg-stone-100 dark:bg-slate-800 px-2 py-1 text-[10px] font-semibold leading-none text-stone-600 dark:text-slate-300",
+
+  "badge-mint": "bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300",
+  "badge-amber": "bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300",
+  "badge-lavender": "bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300",
+  "badge-blue": "bg-sky-100 dark:bg-sky-950/80 text-sky-800 dark:text-sky-300",
+  "badge-rose": "bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300",
+
+  "quiz-ready": "flex items-center gap-1 whitespace-nowrap rounded-lg bg-purple-50 dark:bg-purple-950/60 px-2 py-1 text-[10px] font-semibold text-purple-700 dark:text-purple-300 max-sm:hidden",
+
+  // [FIX #2]: Study activity chart visual distinction & dark borders
+  chart: "flex h-44 items-stretch gap-2.5 border-b border-stone-100 dark:border-slate-800/80 px-5 pb-3 pt-6",
+
+  "bar-wrap": "flex h-full flex-1 flex-col items-center justify-end gap-2 [&_span]:text-[10px] [&_span]:text-stone-500 dark:[&_span]:text-slate-400",
+
+  bar: "w-full max-w-6 rounded-t-md bg-stone-200 dark:bg-slate-800 transition hover:bg-emerald-300 dark:hover:bg-emerald-700",
+
+  peak: "bg-emerald-800 dark:bg-emerald-500 hover:bg-emerald-700 dark:hover:bg-emerald-400 shadow-sm",
+
+  "activity-foot": "flex min-h-14 items-center justify-between px-5 py-3 text-xs text-stone-500 dark:text-slate-400 [&_span]:flex [&_span]:items-center [&_span]:gap-1.5 [&_strong]:font-medium [&_strong]:text-stone-700 dark:[&_strong]:text-slate-200",
+
+  "subjects-panel": "mt-4 max-sm:mt-3",
+
+  "subject-cards": "grid grid-cols-4 gap-2.5 p-3 max-lg:grid-cols-2 max-md:grid-cols-4 max-sm:grid-cols-2 max-sm:p-2.5",
+
+  // [FIX #3]: Refined dark theme variants for subject cards (muted dark surfaces preserving distinct tint identity)
+  "subject-card": "flex min-h-16 min-w-0 items-center gap-3 rounded-xl p-3 text-left border border-stone-200/60 dark:border-slate-800 bg-stone-50/70 dark:bg-slate-900/80 hover:bg-stone-100 dark:hover:bg-slate-800 transition max-sm:min-h-16 [&>span:nth-child(2)]:min-w-0 [&>span:nth-child(2)]:flex-1 [&_strong]:block [&_strong]:truncate [&_strong]:text-xs [&_strong]:text-stone-900 dark:[&_strong]:text-slate-100 [&_small]:mt-1 [&_small]:block [&_small]:truncate [&_small]:text-[10px] [&_small]:text-stone-500 dark:[&_small]:text-slate-400",
+
+  "subject-code": "grid size-9 place-items-center rounded-xl border border-black/5 dark:border-white/5 bg-white dark:bg-slate-800 text-[10px] font-bold shadow-2xs",
+
+  toolbar: "mb-3 grid grid-cols-[minmax(260px,1fr)_180px_180px] gap-2.5 max-sm:grid-cols-2 [&_select]:min-h-11 [&_select]:rounded-xl [&_select]:border [&_select]:border-stone-200 dark:[&_select]:border-slate-700 [&_select]:bg-white dark:[&_select]:bg-slate-900 [&_select]:px-3 [&_select]:text-xs [&_select]:text-stone-900 dark:[&_select]:text-slate-100",
+
   "search-field":
     "flex min-h-11 items-center gap-2 rounded-xl border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-stone-500 dark:text-slate-400 [&_input]:min-w-0 [&_input]:flex-1 [&_input]:bg-transparent [&_input]:text-stone-900 dark:[&_input]:text-slate-100 [&_input]:text-xs [&_input]:outline-none",
-  "results-line": "flex min-h-8 justify-between text-xs text-stone-500 [&_strong]:text-stone-900",
+
+  "results-line": "flex min-h-8 justify-between text-xs text-stone-500 dark:text-slate-400 [&_strong]:text-stone-900 dark:[&_strong]:text-slate-100",
+
   "notes-table": "overflow-hidden max-md:grid max-md:grid-cols-2 max-md:gap-3 max-md:overflow-visible max-md:border-0 max-md:bg-transparent max-md:shadow-none max-sm:grid-cols-1",
-  "table-head": "grid min-h-11 grid-cols-[minmax(240px,1.4fr)_minmax(100px,.65fr)_minmax(130px,.7fr)_minmax(120px,.65fr)_132px] items-center border-b border-stone-200 bg-stone-50 px-4 text-xs font-bold uppercase tracking-wider text-stone-500 max-md:hidden",
-  "note-table-row": "grid min-h-18 grid-cols-[minmax(240px,1.4fr)_minmax(100px,.65fr)_minmax(130px,.7fr)_minmax(120px,.65fr)_132px] items-center border-b border-stone-100 px-4 text-xs last:border-0 hover:bg-stone-50/50 max-md:min-h-56 max-md:grid-cols-2 max-md:gap-3.5 max-md:rounded-xl max-md:border max-md:border-stone-200 max-md:bg-white max-md:p-4",
-  "note-title-cell": "flex min-w-0 items-center gap-3 bg-transparent py-2 text-left max-md:col-span-2 max-md:items-start [&>span:last-child]:min-w-0 [&_strong]:mb-1 [&_strong]:block [&_strong]:truncate [&_strong]:text-xs [&_small]:block [&_small]:text-[10px] [&_small]:text-stone-500",
-  muted: "text-[10px] text-stone-500 dark:text-slate-400", "row-actions": "flex justify-end gap-1 max-md:col-span-2 max-md:border-t max-md:border-stone-100 max-md:pt-2 max-sm:justify-between [&_button]:grid [&_button]:size-8 [&_button]:place-items-center [&_button]:rounded-lg [&_button]:text-stone-500 [&_button]:hover:bg-emerald-50 [&_button]:hover:text-emerald-800",
-  "ai-action-locked": "bg-amber-50 text-amber-800",
-  empty: "px-6 py-16 text-center", "empty-icon": "mx-auto mb-4 grid size-12 place-items-center rounded-full bg-emerald-50 text-emerald-800",
+
+  "table-head": "grid min-h-11 grid-cols-[minmax(240px,1.4fr)_minmax(100px,.65fr)_minmax(130px,.7fr)_minmax(120px,.65fr)_132px] items-center border-b border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900/60 px-4 text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-slate-400 max-md:hidden",
+
+  "note-table-row": "grid min-h-18 grid-cols-[minmax(240px,1.4fr)_minmax(100px,.65fr)_minmax(130px,.7fr)_minmax(120px,.65fr)_132px] items-center border-b border-stone-100 dark:border-slate-800/80 px-4 text-xs last:border-0 hover:bg-stone-50/50 dark:hover:bg-slate-800/70 max-md:min-h-56 max-md:grid-cols-2 max-md:gap-3.5 max-md:rounded-xl max-md:border max-md:border-stone-200 dark:max-md:border-slate-800 max-md:bg-white dark:max-md:bg-slate-900 max-md:p-4",
+
+  "note-title-cell": "flex min-w-0 items-center gap-3 bg-transparent py-2 text-left max-md:col-span-2 max-md:items-start [&>span:last-child]:min-w-0 [&_strong]:mb-1 [&_strong]:block [&_strong]:truncate [&_strong]:text-xs [&_strong]:text-stone-900 dark:[&_strong]:text-slate-100 [&_small]:block [&_small]:text-[10px] [&_small]:text-stone-500 dark:[&_small]:text-slate-400",
+
+  muted: "text-[10px] text-stone-500 dark:text-slate-400",
+
+  "row-actions": "flex justify-end gap-1 max-md:col-span-2 max-md:border-t max-md:border-stone-100 dark:max-md:border-slate-800 max-md:pt-2 max-sm:justify-between [&_button]:grid [&_button]:size-8 [&_button]:place-items-center [&_button]:rounded-lg [&_button]:text-stone-500 dark:[&_button]:text-slate-400 [&_button]:hover:bg-emerald-50 dark:[&_button]:hover:bg-emerald-950/50 [&_button]:hover:text-emerald-800 dark:[&_button]:hover:text-emerald-300",
+
+  "ai-action-locked": "bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300",
+
+  empty: "px-6 py-16 text-center text-stone-500 dark:text-slate-400",
+
+  "empty-icon": "mx-auto mb-4 grid size-12 place-items-center rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300",
+
   "first-note": "mx-auto mt-12 max-w-2xl px-6 py-16 text-center max-sm:mt-5 max-sm:px-5 max-sm:py-12",
-  "narrow-page": "max-w-4xl", "back-link": "mb-4 -mt-2 flex min-h-10 items-center gap-2 text-xs font-semibold text-stone-600",
-  "form-panel": "overflow-hidden [&>section]:border-b [&>section]:border-stone-200 [&>section]:px-8 [&>section]:py-6 max-sm:[&>section]:px-4 max-sm:[&>section]:py-5",
-  "form-section-title": "mb-6 flex gap-3 [&>span]:grid [&>span]:size-7 [&>span]:place-items-center [&>span]:rounded-full [&>span]:bg-emerald-50 [&>span]:text-xs [&>span]:font-bold [&>span]:text-emerald-800 [&_h2]:mb-1 [&_h2]:mt-0.5 [&_h2]:text-sm [&_p]:text-xs [&_p]:text-stone-500",
+
+  "narrow-page": "max-w-4xl",
+
+  "back-link": "mb-4 -mt-2 flex min-h-10 items-center gap-2 text-xs font-semibold text-stone-600 dark:text-slate-300 hover:text-emerald-800 dark:hover:text-emerald-400",
+
+  "form-panel": "overflow-hidden [&>section]:border-b [&>section]:border-stone-200 dark:[&>section]:border-slate-800 [&>section]:px-8 [&>section]:py-6 max-sm:[&>section]:px-4 max-sm:[&>section]:py-5",
+
+  "form-section-title": "mb-6 flex gap-3 [&>span]:grid [&>span]:size-7 [&>span]:place-items-center [&>span]:rounded-full [&>span]:bg-emerald-50 dark:[&>span]:bg-emerald-950/60 [&>span]:text-xs [&>span]:font-bold [&>span]:text-emerald-800 dark:[&>span]:text-emerald-300 [&_h2]:mb-1 [&_h2]:mt-0.5 [&_h2]:text-sm [&_h2]:font-bold [&_h2]:text-stone-900 dark:[&_h2]:text-slate-100 [&_p]:text-xs [&_p]:text-stone-500 dark:[&_p]:text-slate-400",
+
   "form-grid":
-    "grid grid-cols-2 gap-5 max-sm:grid-cols-1 [&_label]:grid [&_label]:gap-2 [&_label]:text-xs [&_label]:font-semibold [&_label]:text-stone-600 dark:[&_label]:text-slate-300 [&_input]:min-h-11 [&_input]:w-full [&_input]:rounded-xl [&_input]:border [&_input]:border-stone-200 [&_input]:bg-white [&_input]:px-3 [&_input]:text-xs [&_input]:text-stone-900 dark:[&_input]:border-slate-700 dark:[&_input]:bg-slate-900 dark:[&_input]:text-slate-100 [&_select]:min-h-11 [&_select]:w-full [&_select]:rounded-xl [&_select]:border [&_select]:border-stone-200 [&_select]:bg-white [&_select]:px-3 [&_select]:text-xs dark:[&_select]:border-slate-700 dark:[&_select]:bg-slate-900 dark:[&_select]:text-slate-100",
-  "span-two": "col-span-2 max-sm:col-auto", readonly: "bg-stone-100 text-stone-500", invalid: "!border-rose-500",
-  "field-error": "!text-xs !text-rose-600", "editor-label": "grid gap-2 text-xs font-semibold text-stone-600 [&>span]:flex [&>span]:justify-between",
-  editor: "overflow-hidden rounded-xl border border-stone-200", "editor-toolbar": "flex h-10 items-center gap-1 border-b border-stone-200 bg-stone-50 px-2 [&_button]:h-8 [&_button]:min-w-8 [&_button]:rounded-lg [&_button]:px-2 [&_button]:text-xs [&_button]:text-stone-600 [&_button]:hover:bg-emerald-50 [&_i]:mx-1 [&_i]:h-4 [&_i]:w-px [&_i]:bg-stone-200",
-  "form-actions": "flex min-h-18 items-center justify-between gap-4 bg-stone-50 px-8 py-3 max-sm:flex-col max-sm:items-stretch max-sm:px-4 [&>span]:text-xs [&>span]:text-stone-500 [&>div]:flex [&>div]:gap-2",
-  "info-strip": "mb-4 -mt-2 flex min-h-11 items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/50 px-3 text-xs text-stone-600",
-  "save-status": "ml-auto", "reading-page": "max-w-7xl", "detail-heading": "mb-6 flex items-end justify-between gap-6 max-md:flex-col max-md:items-start",
-  "detail-meta": "flex flex-wrap items-center gap-3 text-xs text-stone-500 [&_span]:border-l [&_span]:border-stone-200 [&_span]:pl-3", "detail-actions": "flex gap-2 max-sm:grid max-sm:w-full max-sm:grid-cols-2",
-  "reading-layout": "grid grid-cols-[minmax(0,1fr)_190px] items-start gap-8 max-md:grid-cols-1", "note-content": "p-12 max-sm:p-6 [&_p]:mb-6 [&_p]:text-base [&_p]:leading-relaxed [&_p]:text-stone-700 [&_h2]:mb-2 [&_h2]:mt-8 [&_h2]:font-heading [&_h2]:text-2xl",
-  "content-kicker": "mb-5 text-xs font-bold uppercase tracking-widest text-stone-500", lead: "!font-heading !text-xl !leading-relaxed !text-stone-900",
-  "study-callout": "mt-10 flex items-center gap-3 rounded-xl bg-emerald-50 p-4 max-sm:flex-wrap max-sm:items-start [&>span]:grid [&>span]:size-8 [&>span]:place-items-center [&>span]:rounded-lg [&>span]:bg-white [&>span]:text-emerald-800 [&>div]:flex-1 [&_strong]:text-xs [&_p]:mt-1 [&_p]:text-xs [&_p]:text-stone-500",
-  "note-outline": "sticky top-24 grid pt-2 max-md:hidden [&>a]:flex [&>a]:min-h-9 [&>a]:items-center [&>a]:border-l-2 [&>a]:border-stone-200 [&>a]:px-2.5 [&>a]:text-xs [&>a]:text-stone-500",
-  "quiz-mini": "mt-5 flex gap-2 rounded-xl border border-stone-200 bg-white p-3 text-emerald-800", "progress-page": "max-w-3xl",
-  "progress-card": "px-12 py-10 text-center", orb: "relative mx-auto mb-5 grid size-16 place-items-center rounded-full bg-emerald-50 text-emerald-800",
-  "progress-meter": "h-2 overflow-hidden rounded-full bg-stone-200 [&_span]:block [&_span]:h-full [&_span]:rounded-full [&_span]:bg-emerald-800 [&_span]:transition-[width]",
-  "progress-label": "mt-2 flex justify-between text-xs text-stone-500", "stage-list": "my-6 mb-6 text-left",
-  stage: "flex min-h-16 items-center gap-3 border-b border-stone-100 px-3 py-2 opacity-50", done: "opacity-100", current: "mx-[-1rem] rounded-xl border border-emerald-200 bg-emerald-50/50 px-4 opacity-100",
-  "stage-status": "grid size-7 place-items-center rounded-full border border-stone-200 text-xs font-semibold text-stone-500", working: "text-xs font-semibold text-emerald-800",
-  "progress-note": "flex justify-center gap-2 rounded-xl bg-stone-100 p-3 text-left text-xs leading-normal text-stone-600",
-  "quiz-page": "max-w-7xl", "quiz-layout": "grid grid-cols-[minmax(0,1fr)_300px] items-start gap-4 max-md:grid-cols-1 [&_main]:grid [&_main]:gap-4",
-  "summary-card": "flex gap-4 p-5", "summary-icon": "grid size-10 shrink-0 place-items-center rounded-xl bg-purple-100 text-purple-700",
-  questions: "overflow-hidden", "questions-head": "flex min-h-18 items-center justify-between border-b border-stone-200 px-6 py-4", question: "flex min-h-18 items-start gap-4 border-b border-stone-100 px-5 py-4 last:border-0",
-  "quiz-aside": "sticky top-22 grid gap-4 max-md:static max-md:grid-cols-2 max-sm:grid-cols-1", "concept-card": "p-5", concepts: "flex flex-wrap gap-1.5 [&_span]:rounded-lg [&_span]:bg-emerald-50 [&_span]:px-2 [&_span]:py-1 [&_span]:text-xs [&_span]:font-semibold [&_span]:text-emerald-800",
-  "generated-summary": "p-5", "quiz-actions-card": "flex gap-3 rounded-xl bg-purple-100 p-4 text-purple-900",
-  "modal-backdrop": "fixed inset-0 z-[100] grid place-items-center bg-stone-950/50 p-5 backdrop-blur-sm", modal: "relative w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl max-sm:p-5",
-  "modal-close": "absolute right-4 top-4 grid size-9 place-items-center rounded-xl text-stone-500", "danger-icon": "grid size-12 place-items-center rounded-xl bg-rose-50 text-rose-600",
-  warning: "my-4 flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-700", "modal-actions": "grid grid-cols-2 gap-2.5 max-sm:grid-cols-1",
-  welcome: "grid min-h-screen place-items-center bg-[radial-gradient(circle_at_15%_15%,#dfece4_0,transparent_30%),radial-gradient(circle_at_85%_85%,#eee5d3_0,transparent_30%),#f6f7f3] p-7",
-  "welcome-brand": "absolute left-8 top-7", "welcome-card": "w-full max-w-md rounded-2xl border border-stone-200 bg-white/90 p-10 text-center shadow-xl",
-  "welcome-art": "relative mx-auto mb-5 grid size-16 place-items-center rounded-2xl bg-emerald-50 text-emerald-800", profiles: "grid gap-2 [&_button]:flex [&_button]:min-h-16 [&_button]:items-center [&_button]:gap-3 [&_button]:rounded-xl [&_button]:border [&_button]:border-stone-200 [&_button]:bg-white [&_button]:px-3 [&_button]:py-2 [&_button]:text-left",
-  large: "size-10", alt: "bg-slate-500", or: "my-5 flex items-center gap-2 text-xs uppercase tracking-wider text-stone-500 [&_span]:h-px [&_span]:flex-1 [&_span]:bg-stone-200",
-  "username-entry": "mb-3 grid gap-2 text-left text-xs font-semibold text-stone-600 [&>div]:flex [&>div]:min-h-11 [&>div]:items-center [&>div]:gap-2 [&>div]:rounded-xl [&>div]:border [&>div]:border-stone-200 [&>div]:px-3",
-  full: "w-full", privacy: "mt-3 block text-[10px] font-normal text-stone-500",
-  "api-status": "flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-800 max-sm:min-w-9 max-sm:px-2.5 max-sm:[&_span]:hidden",
-  ready: "border-emerald-200 bg-emerald-50 text-emerald-800", "api-modal": "max-w-lg", "api-modal-icon": "grid size-12 place-items-center rounded-xl bg-amber-100 text-amber-800", connected: "bg-emerald-800 text-white",
-  "api-session-row": "my-4 flex min-h-9 items-center gap-2 rounded-xl border border-stone-200 bg-stone-50 px-3 text-xs text-stone-500 [&_strong]:ml-auto [&_strong]:text-stone-700",
-  "session-dot": "size-2 rounded-full bg-amber-500", online: "bg-emerald-600", "api-key-field": "my-4 grid gap-2 text-xs font-semibold text-stone-600 [&>div]:flex [&>div]:min-h-12 [&>div]:items-center [&>div]:gap-2 [&>div]:rounded-xl [&>div]:border [&>div]:border-stone-200 [&>div]:px-3",
-  "api-feedback": "my-2.5 flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-xs", error: "bg-rose-50 text-rose-700", loading: "bg-emerald-50 text-emerald-800",
-  "secure-note": "my-4 flex items-start gap-2 rounded-xl bg-emerald-50/50 p-3 text-emerald-800", "api-success": "my-4 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-800 p-4 text-white",
-  "api-manage-actions": "mt-5", open: "max-md:[&_aside]:translate-x-0 max-md:[&>div]:block", "drawer-backdrop": "fixed inset-0 z-[29] hidden bg-stone-950/40",
-  "mobile-nav": "fixed inset-x-0 bottom-0 z-50 hidden h-16 grid-cols-5 border-t border-stone-200 bg-white/95 px-2 py-1 backdrop-blur-xl max-sm:grid [&_button]:flex [&_button]:min-h-12 [&_button]:min-w-0 [&_button]:flex-col [&_button]:items-center [&_button]:justify-center [&_button]:gap-1 [&_button]:p-1 [&_button]:text-[10px] [&_button]:text-stone-500",
-  "mobile-create": "text-emerald-800",
-  active: "bg-stone-200 font-semibold !text-emerald-800",
+    "grid grid-cols-2 gap-5 max-sm:grid-cols-1 [&_label]:grid [&_label]:gap-2 [&_label]:text-xs [&_label]:font-semibold [&_label]:text-stone-600 dark:[&_label]:text-slate-300 [&_input]:min-h-11 [&_input]:w-full [&_input]:rounded-xl [&_input]:border [&_input]:border-stone-200 dark:[&_input]:border-slate-700 [&_input]:bg-white dark:[&_input]:bg-slate-900 [&_input]:px-3 [&_input]:text-xs [&_input]:text-stone-900 dark:[&_input]:text-slate-100 [&_select]:min-h-11 [&_select]:w-full [&_select]:rounded-xl [&_select]:border [&_select]:border-stone-200 dark:[&_select]:border-slate-700 [&_select]:bg-white dark:[&_select]:bg-slate-900 [&_select]:px-3 [&_select]:text-xs [&_select]:text-stone-900 dark:[&_select]:text-slate-100",
+
+  "span-two": "col-span-2 max-sm:col-auto",
+
+  readonly: "bg-stone-100 dark:bg-slate-800 text-stone-500 dark:text-slate-400",
+
+  invalid: "!border-rose-500",
+
+  "field-error": "!text-xs !text-rose-600 dark:!text-rose-400",
+
+  "editor-label": "grid gap-2 text-xs font-semibold text-stone-600 dark:text-slate-300 [&>span]:flex [&>span]:justify-between",
+
+  editor: "overflow-hidden rounded-xl border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-900",
+
+  "editor-toolbar": "flex h-10 items-center gap-1 border-b border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800/80 px-2 [&_button]:h-8 [&_button]:min-w-8 [&_button]:rounded-lg [&_button]:px-2 [&_button]:text-xs [&_button]:text-stone-600 dark:[&_button]:text-slate-300 [&_button]:hover:bg-emerald-50 dark:[&_button]:hover:bg-emerald-950/50 [&_button]:hover:text-emerald-800 dark:[&_button]:hover:text-emerald-300 [&_i]:mx-1 [&_i]:h-4 [&_i]:w-px [&_i]:bg-stone-200 dark:[&_i]:bg-slate-700",
+
+  "form-actions": "flex min-h-18 items-center justify-between gap-4 bg-stone-50 dark:bg-slate-900/60 px-8 py-3 max-sm:flex-col max-sm:items-stretch max-sm:px-4 [&>span]:text-xs [&>span]:text-stone-500 dark:[&>span]:text-slate-400 [&>div]:flex [&>div]:gap-2",
+
+  "info-strip": "mb-4 -mt-2 flex min-h-11 items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/30 px-3 text-xs text-stone-600 dark:text-slate-300",
+
+  "save-status": "ml-auto",
+
+  "reading-page": "max-w-7xl",
+
+  "detail-heading": "mb-6 flex items-end justify-between gap-6 max-md:flex-col max-md:items-start",
+
+  "detail-meta": "flex flex-wrap items-center gap-3 text-xs text-stone-500 dark:text-slate-400 [&_span]:border-l [&_span]:border-stone-200 dark:[&_span]:border-slate-700 [&_span]:pl-3",
+
+  "detail-actions": "flex gap-2 max-sm:grid max-sm:w-full max-sm:grid-cols-2",
+
+  "reading-layout": "grid grid-cols-[minmax(0,1fr)_190px] items-start gap-8 max-md:grid-cols-1",
+
+  "note-content": "p-12 max-sm:p-6 [&_p]:mb-6 [&_p]:text-base [&_p]:leading-relaxed [&_p]:text-stone-700 dark:[&_p]:text-slate-300 [&_h2]:mb-2 [&_h2]:mt-8 [&_h2]:font-heading [&_h2]:text-2xl [&_h2]:text-stone-900 dark:[&_h2]:text-slate-100",
+
+  "content-kicker": "mb-5 text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-slate-400",
+
+  lead: "!font-heading !text-xl !leading-relaxed !text-stone-900 dark:!text-slate-100",
+
+  "study-callout": "mt-10 flex items-center gap-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/60 dark:border-emerald-900/40 p-4 max-sm:flex-wrap max-sm:items-start [&>span]:grid [&>span]:size-8 [&>span]:place-items-center [&>span]:rounded-lg [&>span]:bg-white dark:[&>span]:bg-slate-800 [&>span]:text-emerald-800 dark:[&>span]:text-emerald-300 [&>div]:flex-1 [&_strong]:text-xs [&_strong]:text-stone-900 dark:[&_strong]:text-slate-100 [&_p]:mt-1 [&_p]:text-xs [&_p]:text-stone-500 dark:[&_p]:text-slate-400",
+
+  "note-outline": "sticky top-24 grid pt-2 max-md:hidden [&>a]:flex [&>a]:min-h-9 [&>a]:items-center [&>a]:border-l-2 [&>a]:border-stone-200 dark:[&>a]:border-slate-800 [&>a]:px-2.5 [&>a]:text-xs [&>a]:text-stone-500 dark:[&>a]:text-slate-400 hover:[&>a]:text-emerald-800 dark:hover:[&>a]:text-emerald-400",
+
+  "quiz-mini": "mt-5 flex gap-2 rounded-xl border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 text-emerald-800 dark:text-emerald-300",
+
+  "progress-page": "max-w-3xl",
+
+  "progress-card": "px-12 py-10 text-center",
+
+  orb: "relative mx-auto mb-5 grid size-16 place-items-center rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300",
+
+  "progress-meter": "h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-slate-800 [&_span]:block [&_span]:h-full [&_span]:rounded-full [&_span]:bg-emerald-800 dark:[&_span]:bg-emerald-500 [&_span]:transition-[width]",
+
+  "progress-label": "mt-2 flex justify-between text-xs text-stone-500 dark:text-slate-400",
+
+  "stage-list": "my-6 mb-6 text-left",
+
+  stage: "flex min-h-16 items-center gap-3 border-b border-stone-100 dark:border-slate-800 px-3 py-2 opacity-50",
+
+  done: "opacity-100",
+
+  current: "mx-[-1rem] rounded-xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/50 dark:bg-emerald-950/30 px-4 opacity-100",
+
+  "stage-status": "grid size-7 place-items-center rounded-full border border-stone-200 dark:border-slate-700 text-xs font-semibold text-stone-500 dark:text-slate-400",
+
+  working: "text-xs font-semibold text-emerald-800 dark:text-emerald-300",
+
+  "progress-note": "flex justify-center gap-2 rounded-xl bg-stone-100 dark:bg-slate-800 p-3 text-left text-xs leading-normal text-stone-600 dark:text-slate-300",
+
+  "quiz-page": "max-w-7xl",
+
+  "quiz-layout": "grid grid-cols-[minmax(0,1fr)_300px] items-start gap-4 max-md:grid-cols-1 [&_main]:grid [&_main]:gap-4",
+
+  "summary-card": "flex gap-4 p-5",
+
+  "summary-icon": "grid size-10 shrink-0 place-items-center rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300",
+
+  questions: "overflow-hidden",
+
+  "questions-head": "flex min-h-18 items-center justify-between border-b border-stone-200 dark:border-slate-700 px-6 py-4",
+
+  question: "flex min-h-18 items-start gap-4 border-b border-stone-100 dark:border-slate-800 px-5 py-4 last:border-0",
+
+  "quiz-aside": "sticky top-22 grid gap-4 max-md:static max-md:grid-cols-2 max-sm:grid-cols-1",
+
+  "concept-card": "p-5",
+
+  concepts: "flex flex-wrap gap-1.5 [&_span]:rounded-lg [&_span]:bg-emerald-50 dark:[&_span]:bg-emerald-950/60 [&_span]:px-2 [&_span]:py-1 [&_span]:text-xs [&_span]:font-semibold [&_span]:text-emerald-800 dark:[&_span]:text-emerald-300",
+
+  "generated-summary": "p-5",
+
+  "quiz-actions-card": "flex gap-3 rounded-xl bg-purple-100 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-900/40 p-4 text-purple-900 dark:text-purple-200",
+
+  "modal-backdrop": "fixed inset-0 z-[100] grid place-items-center bg-stone-950/50 backdrop-blur-sm p-5",
+
+  modal: "relative w-full max-w-md rounded-2xl border border-stone-200 bg-white p-8 text-stone-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 max-sm:p-5",
+
+  "modal-close": "absolute right-4 top-4 grid size-9 place-items-center rounded-xl text-stone-500 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-slate-800",
+
+  "danger-icon": "grid size-12 place-items-center rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400",
+
+  warning: "my-4 flex items-center gap-2 rounded-xl bg-rose-50 dark:bg-rose-950/60 p-3 text-xs font-semibold text-rose-700 dark:text-rose-300",
+
+  "modal-actions": "grid grid-cols-2 gap-2.5 max-sm:grid-cols-1",
+
+  welcome: "grid min-h-screen place-items-center bg-[radial-gradient(circle_at_15%_15%,#dfece4_0,transparent_30%),radial-gradient(circle_at_85%_85%,#eee5d3_0,transparent_30%),#f6f7f3] dark:bg-[radial-gradient(circle_at_15%_15%,#062316_0,transparent_30%),radial-gradient(circle_at_85%_85%,#1c1917_0,transparent_30%),#020617] p-7",
+
+  "welcome-brand": "absolute left-8 top-7",
+
+  "welcome-card": "w-full max-w-md rounded-2xl border border-stone-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/95 p-10 text-center shadow-xl",
+
+  "welcome-art": "relative mx-auto mb-5 grid size-16 place-items-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300",
+
+  profiles: "grid gap-2 [&_button]:flex [&_button]:min-h-16 [&_button]:items-center [&_button]:gap-3 [&_button]:rounded-xl [&_button]:border [&_button]:border-stone-200 dark:[&_button]:border-slate-700 [&_button]:bg-white dark:[&_button]:bg-slate-800 [&_button]:px-3 [&_button]:py-2 [&_button]:text-left [&_button]:text-stone-900 dark:[&_button]:text-slate-100",
+
+  large: "size-10",
+
+  alt: "bg-slate-500",
+
+  or: "my-5 flex items-center gap-2 text-xs uppercase tracking-wider text-stone-500 dark:text-slate-400 [&_span]:h-px [&_span]:flex-1 [&_span]:bg-stone-200 dark:[&_span]:bg-slate-700",
+
+  "username-entry": "mb-3 grid gap-2 text-left text-xs font-semibold text-stone-600 dark:text-slate-300 [&>div]:flex [&>div]:min-h-11 [&>div]:items-center [&>div]:gap-2 [&>div]:rounded-xl [&>div]:border [&>div]:border-stone-200 dark:[&>div]:border-slate-700 [&>div]:bg-white dark:[&>div]:bg-slate-800 [&>div]:px-3",
+
+  full: "w-full",
+
+  privacy: "mt-3 block text-[10px] font-normal text-stone-500 dark:text-slate-400",
+
+  "api-status": "flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 dark:bg-amber-950/60 dark:border-amber-900 px-3 text-xs font-bold text-amber-800 dark:text-amber-300 max-sm:min-w-9 max-sm:px-2.5 max-sm:[&_span]:hidden",
+
+  ready: "border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300",
+
+  "api-modal": "max-w-lg border border-stone-200 bg-white text-stone-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100",
+
+  "api-modal-icon": "grid size-12 place-items-center rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300",
+
+  connected: "bg-emerald-800 dark:bg-emerald-700 text-white",
+
+  "api-session-row": "my-4 flex min-h-9 items-center gap-2 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 px-3 text-xs text-stone-500 dark:text-slate-300 [&_strong]:ml-auto [&_strong]:text-stone-700 dark:[&_strong]:text-slate-200",
+
+  "session-dot": "size-2 rounded-full bg-amber-500",
+
+  online: "bg-emerald-600",
+
+  "api-key-field": "my-4 grid gap-2 text-xs font-semibold text-stone-600 dark:text-slate-300 [&>div]:flex [&>div]:min-h-12 [&>div]:items-center [&>div]:gap-2 [&>div]:rounded-xl [&>div]:border [&>div]:border-stone-200 dark:[&>div]:border-slate-700 [&>div]:bg-white dark:[&>div]:bg-slate-800 [&>div]:px-3",
+
+  "api-feedback": "my-2.5 flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-xs",
+
+  error: "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300",
+
+  loading: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300",
+
+  "secure-note": "my-4 flex items-start gap-2 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-900/40 p-3 text-emerald-800 dark:text-emerald-300",
+
+  "api-success": "my-4 flex items-center gap-3 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-800 dark:bg-emerald-900 p-4 text-white",
+
+  "api-manage-actions": "mt-5",
+
+  open: "max-md:[&_aside]:translate-x-0 max-md:[&>div]:block",
+
+  "drawer-backdrop": "fixed inset-0 z-[29] hidden bg-stone-950/40 backdrop-blur-xs",
+
+  "mobile-nav": "fixed inset-x-0 bottom-0 z-50 hidden h-16 grid-cols-5 border-t border-stone-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 px-2 py-1 backdrop-blur-xl max-sm:grid [&_button]:flex [&_button]:min-h-12 [&_button]:min-w-0 [&_button]:flex-col [&_button]:items-center [&_button]:justify-center [&_button]:gap-1 [&_button]:p-1 [&_button]:text-[10px] [&_button]:text-stone-500 dark:[&_button]:text-slate-400",
+
+  "mobile-create": "text-emerald-800 dark:text-emerald-400",
+
+  active: "bg-stone-200 dark:bg-slate-800 font-semibold !text-emerald-800 dark:!text-emerald-300",
+
   "sidebar-wrap": "",
-  "auth-shell": "relative grid min-h-screen place-items-center overflow-hidden bg-[radial-gradient(circle_at_12%_15%,#dfece4_0,transparent_28%),radial-gradient(circle_at_88%_85%,#eee5d3_0,transparent_28%),#f6f7f3] px-4 py-24",
+
+  "auth-shell": "relative grid min-h-screen place-items-center overflow-hidden bg-[radial-gradient(circle_at_12%_15%,#dfece4_0,transparent_28%),radial-gradient(circle_at_88%_85%,#eee5d3_0,transparent_28%),#f6f7f3] dark:bg-[radial-gradient(circle_at_12%_15%,#062316_0,transparent_28%),radial-gradient(circle_at_88%_85%,#1c1917_0,transparent_28%),#020617] px-4 py-24",
+
   "auth-brand": "absolute left-8 top-7 max-sm:left-5 max-sm:top-5",
-  "auth-card": "w-full max-w-md rounded-2xl border border-stone-200 bg-white/95 p-8 shadow-xl max-sm:p-6 [&_h1]:font-heading [&_h1]:text-3xl [&_h1]:leading-tight [&_p]:mt-2 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-stone-600",
+
+  "auth-card": "w-full max-w-md rounded-2xl border border-stone-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-8 shadow-xl max-sm:p-6 [&_h1]:font-heading [&_h1]:text-3xl [&_h1]:leading-tight [&_h1]:text-stone-900 dark:[&_h1]:text-slate-100 [&_p]:mt-2 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-stone-600 dark:[&_p]:text-slate-400",
+
   "auth-heading": "mb-6 text-center",
-  "auth-icon": "mx-auto mb-4 grid size-12 place-items-center rounded-xl bg-emerald-50 text-emerald-800",
+
+  "auth-icon": "mx-auto mb-4 grid size-12 place-items-center rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300",
+
   "auth-form": "grid gap-4",
-  "auth-field": "grid gap-2 text-xs font-semibold text-stone-600 [&>div]:flex [&>div]:min-h-12 [&>div]:items-center [&>div]:gap-2.5 [&>div]:rounded-xl [&>div]:border [&>div]:border-stone-200 [&>div]:bg-white [&>div]:px-3 [&>div]:focus-within:border-emerald-600 [&>div]:focus-within:ring-2 [&>div]:focus-within:ring-emerald-800/10 [&_input]:min-w-0 [&_input]:flex-1 [&_input]:bg-transparent [&_input]:text-sm [&_input]:font-normal [&_input]:text-stone-900 [&_input]:outline-none [&_button]:grid [&_button]:size-9 [&_button]:place-items-center [&_button]:rounded-lg [&_button]:text-stone-500 [&_button]:hover:bg-emerald-50",
-  "auth-row": "flex items-center justify-between gap-3 text-xs text-stone-600",
-  "auth-link": "font-bold text-emerald-800 hover:underline",
-  "auth-divider": "my-1 flex items-center gap-3 text-[10px] uppercase tracking-wider text-stone-400 before:h-px before:flex-1 before:bg-stone-200 after:h-px after:flex-1 after:bg-stone-200",
-  "password-meter": "grid grid-cols-4 gap-1 [&_i]:h-1 [&_i]:rounded-full [&_i]:bg-stone-200",
+
+  "auth-field": "grid gap-2 text-xs font-semibold text-stone-600 dark:text-slate-300 [&>div]:flex [&>div]:min-h-12 [&>div]:items-center [&>div]:gap-2.5 [&>div]:rounded-xl [&>div]:border [&>div]:border-stone-200 [&>div]:bg-white [&>div]:px-3 [&>div]:transition-colors [&>div]:focus-within:border-emerald-600 [&>div]:focus-within:ring-2 [&>div]:focus-within:ring-emerald-800/10 dark:[&>div]:border-slate-700 dark:[&>div]:bg-slate-800 dark:[&>div]:focus-within:border-emerald-500 [&_input]:min-w-0 [&_input]:flex-1 [&_input]:bg-transparent [&_input]:text-sm [&_input]:font-normal [&_input]:text-stone-900 [&_input]:placeholder:text-stone-400 dark:[&_input]:text-slate-100 dark:[&_input]:placeholder:text-slate-500 [&_input]:outline-none [&_button]:grid [&_button]:size-9 [&_button]:place-items-center [&_button]:rounded-lg [&_button]:text-stone-500 [&_button]:transition-colors [&_button:hover]:bg-emerald-50 dark:[&_button]:text-slate-400 dark:[&_button:hover]:bg-emerald-950/40 dark:[&_button:hover]:text-slate-100",
+
+  "auth-row": "flex items-center justify-between gap-3 text-xs text-stone-600 dark:text-slate-400",
+
+  "auth-link": "font-bold text-emerald-800 dark:text-emerald-400 hover:underline",
+
+  "auth-divider": "my-1 flex items-center gap-3 text-[10px] uppercase tracking-wider text-stone-400 dark:text-slate-500 before:h-px before:flex-1 before:bg-stone-200 dark:before:bg-slate-700 after:h-px after:flex-1 after:bg-stone-200 dark:after:bg-slate-700",
+
+  "password-meter": "grid grid-cols-4 gap-1 [&_i]:h-1 [&_i]:rounded-full [&_i]:bg-stone-200 dark:[&_i]:bg-slate-700",
+
   "account-page": "mx-auto w-full max-w-4xl px-8 py-10 max-md:px-6 max-sm:px-4 max-sm:py-6",
+
   "account-grid": "grid grid-cols-[220px_minmax(0,1fr)] gap-6 max-md:grid-cols-1",
-  "account-nav": "h-fit rounded-2xl border border-stone-200 bg-white p-2 [&_button]:flex [&_button]:min-h-11 [&_button]:w-full [&_button]:items-center [&_button]:gap-2.5 [&_button]:rounded-xl [&_button]:px-3 [&_button]:text-left [&_button]:text-xs [&_button]:font-semibold [&_button]:text-stone-600 [&_button]:hover:bg-stone-50",
-  "account-panel": "overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm",
-  "account-section": "border-b border-stone-100 p-6 last:border-0 max-sm:p-5 [&_h2]:text-sm [&_h2]:font-bold [&_p]:mt-1 [&_p]:text-xs [&_p]:text-stone-500",
+
+  "account-nav":
+    "h-fit rounded-2xl border border-stone-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900 [&_button]:flex [&_button]:min-h-11 [&_button]:w-full [&_button]:items-center [&_button]:gap-2.5 [&_button]:rounded-xl [&_button]:px-3 [&_button]:text-left [&_button]:text-xs [&_button]:font-semibold [&_button]:text-stone-600 dark:[&_button]:text-slate-300 [&_button]:hover:bg-stone-100 dark:[&_button]:hover:bg-slate-800 [&_button]:hover:text-emerald-800 dark:[&_button]:hover:text-emerald-300",
+
+  "account-panel":
+    "overflow-hidden rounded-2xl border border-stone-200 bg-white text-stone-900 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100",
+
+  "account-section": "border-b border-stone-100 dark:border-slate-800 p-6 last:border-0 max-sm:p-5 [&_h2]:text-sm [&_h2]:font-bold [&_h2]:text-stone-900 dark:[&_h2]:text-slate-100 [&_p]:mt-1 [&_p]:text-xs [&_p]:text-stone-500 dark:[&_p]:text-slate-400",
+
   "account-avatar": "grid size-16 place-items-center rounded-full bg-amber-700 text-lg font-bold text-white",
-  "danger-zone": "rounded-xl border border-rose-200 bg-rose-50/50 p-5",
-  "success-banner": "flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-semibold text-emerald-800",
+
+  "danger-zone": "rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/20 p-5",
+
+  "success-banner": "flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/50 px-3 py-2.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300",
+
 };
