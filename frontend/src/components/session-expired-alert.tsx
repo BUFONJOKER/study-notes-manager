@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -18,17 +19,22 @@ export function SessionExpiredAlert() {
     timerRef.current = setTimeout(() => {
       void signOut({
         callbackUrl: "/login?reason=session-expired",
+        redirect: true,
       });
     }, 2500);
   }, []);
 
   useEffect(() => {
-    const handleEvent = () => handleExpiredSession();
-
-    window.addEventListener("app:session-expired", handleEvent);
+    window.addEventListener(
+      "app:session-expired",
+      handleExpiredSession,
+    );
 
     return () => {
-      window.removeEventListener("app:session-expired", handleEvent);
+      window.removeEventListener(
+        "app:session-expired",
+        handleExpiredSession,
+      );
 
       if (timerRef.current) {
         clearTimeout(timerRef.current);
@@ -49,7 +55,9 @@ export function SessionExpiredAlert() {
       </span>
 
       <div>
-        <p className="font-semibold">Your session has expired</p>
+        <p className="font-semibold">
+          Your session has expired
+        </p>
         <p className="mt-1 text-sm">
           Please log in again to continue. Redirecting to login...
         </p>

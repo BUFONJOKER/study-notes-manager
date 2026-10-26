@@ -1,3 +1,4 @@
+
 import axios from "axios";
 
 export const api = axios.create({
@@ -10,6 +11,7 @@ export const api = axios.create({
 
 let sessionExpiredEventDispatched = false;
 
+// Dispatch a single event when an authenticated API request returns 401.
 api.interceptors.response.use(
   (response) => response,
   (error: unknown) => {
@@ -20,6 +22,7 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const url = error.config?.url ?? "";
 
+    // Don't expire the session for failed login attempts.
     const isLoginRequest = /\/users\/login\/?$/.test(url);
 
     if (
@@ -35,34 +38,4 @@ api.interceptors.response.use(
 
     return Promise.reject(error);
   },
-);
-
-
-// ADD THIS: Response Interceptor to catch 401s (Expired Tokens) Globally
-api.interceptors.response.use(
-    (response) => response, // Pass successful requests through
-    (error) => {
-        const status = error.response?.status;
-        const url = error.config?.url ?? "";
-        const isLoginRequest = url.includes("users/login");
-        // Check if FastAPI returned a 401 Unauthorized error
-        // if (error.response && error.response.status === 401) {
-        //     if (typeof window !== "undefined") {
-        //         // Force log out on the client side and send them to the login screen
-        //         await signOut({ callbackUrl: "/login" });
-        //     }
-        // }
-        // return Promise.reject(error);
-        if (
-            typeof window !== "undefined" &&
-            status === 401 &&
-            !isLoginRequest
-        ) {
-            window.dispatchEvent(
-                new Event("app:session-expired"),
-            );
-        }
-
-        return Promise.reject(error);
-    },
 );

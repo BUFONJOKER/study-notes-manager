@@ -1,4 +1,3 @@
-
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
@@ -7,6 +6,7 @@ export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "FastApi Login",
+
       credentials: {
         username: {
           label: "Username",
@@ -35,7 +35,6 @@ export const authOptions: NextAuthOptions = {
         formData.append("password", credentials.password);
 
         try {
-          // 1. Authenticate with FastAPI.
           const loginResponse = await axios.post(
             `${baseUrl}/users/login`,
             formData,
@@ -43,7 +42,7 @@ export const authOptions: NextAuthOptions = {
               headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
               },
-            }
+            },
           );
 
           const accessToken: string = loginResponse.data.access_token;
@@ -52,25 +51,39 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // 2. Fetch the actual authenticated user's profile.
-          const profileResponse = await axios.get(
-            `${baseUrl}/users/me`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-            }
-          );
+          // Fetch the authenticated user's profile.
+          const profileResponse = await axios.get(`${baseUrl}/users/me`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
 
           const profile = profileResponse.data;
 
-          // 3. Return real user information to NextAuth.
+          // Read the JWT expiry claim (exp) from the token payload.
+          // This is for scheduling frontend logout; FastAPI remains
+          // responsible for validating the token cryptographically.
+          const parts = accessToken.split(".");
+
+          if (parts.length !== 3) {
+            throw new Error("Invalid access token format.");
+          }
+
+          const payload = JSON.parse(
+            Buffer.from(parts[1], "base64url").toString("utf8"),
+          ) as { exp?: number };
+
+          if (typeof payload.exp !== "number") {
+            throw new Error("Access token has no expiry claim.");
+          }
+
           return {
             id: String(profile.user_id),
             user_id: profile.user_id,
             user_name: profile.user_name,
             name: profile.user_name,
             accessToken,
+            accessTokenExpires: payload.exp * 1000,
           };
         } catch (error) {
           if (axios.isAxiosError(error)) {
@@ -95,6 +108,14 @@ export const authOptions: NextAuthOptions = {
         token.user_id = user.user_id;
         token.user_name = user.user_name;
         token.accessToken = user.accessToken;
+        token.accessTokenExpires = user.accessTokenExpires;
+      }
+
+      if (
+        typeof token.accessTokenExpires !== "number" ||
+        Date.now() >= token.accessTokenExpires
+      ) {
+        token.error = "AccessTokenExpired";
       }
 
       return token;
@@ -102,18 +123,29 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = String(token.user_id ?? "");
+        session.user.email = String(token.user_id ?? "");
         session.user.name = String(token.user_name ?? "");
       }
 
-      session.accessToken = typeof token.accessToken === "string" ? token.accessToken : "";
+      session.accessToken =
+        typeof token.accessToken === "string" ? token.accessToken : "";
+
+      session.accessTokenExpires =
+        typeof token.accessTokenExpires === "number"
+          ? token.accessTokenExpires
+          : 0;
+
+      session.error =
+        typeof token.error === "string" ? token.error : undefined;
+
       return session;
     },
   },
 
   session: {
     strategy: "jwt",
-    maxAge: 30 * 60, // 30 minutes
+    // FastAPI expiry is enforced separately.
+    maxAge: 30 * 24 * 60 * 60,
   },
 
   pages: {

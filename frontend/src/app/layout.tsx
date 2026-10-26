@@ -45,7 +45,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <AppProvider>
-              <SessionExpiredAlert />
+              {/* <SessionExpiredAlert /> */}
               <GlobalErrorBanner />
               {children}
             </AppProvider>
