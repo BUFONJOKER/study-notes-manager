@@ -4,7 +4,6 @@ import { AppProvider } from "@/context/app-context";
 import AuthProvider from "@/components/SessionProvider";
 import { ThemeProvider } from "@/components/theme-provider"; // <-- Updated import path
 import "./globals.css";
-import { SessionExpiredAlert } from "@/components/session-expired-alert";
 import { GlobalErrorBanner } from "@/components/global-error-banner";
 
 const inter = Inter({
@@ -45,7 +44,6 @@ export default function RootLayout({
         >
           <AuthProvider>
             <AppProvider>
-              {/* <SessionExpiredAlert /> */}
               <GlobalErrorBanner />
               {children}
             </AppProvider>
