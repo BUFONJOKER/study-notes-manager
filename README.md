@@ -4,8 +4,8 @@ Study Notes Manager is an application for creating, organizing, and studying not
 
 ## 📊 Project Status
 
-- **Backend:** 🟡 Almost complete
-- **Frontend:** 🟡 Almost complete
+- **Backend:** 🟡 Completed
+- **Frontend:** 🟡 Completed
 
 ## 🧩 Main Parts
 
