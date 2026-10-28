@@ -15,7 +15,9 @@ app = FastAPI(
 )
 
 origins = [
-    "http://localhost:8000" # frontend local URL
+    "http://localhost",
+    "http://localhost:3000",  # adjust to your actual frontend port
+    "http://localhost:8000",
 ]
 
 app.add_middleware(
