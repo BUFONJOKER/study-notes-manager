@@ -47,6 +47,8 @@ ENV/
 *.py[cod]
 *$py.class
 
+# also include .deepeval if you want to ignore DeepEval files
+.deepeval/
 # Pycache Rule: Ignore everywhere, but explicitly allow if it's inside a frontend folder
 **/__pycache__/
 !frontend/**/__pycache__/
