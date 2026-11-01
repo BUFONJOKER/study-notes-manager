@@ -64,6 +64,7 @@ type AppContextValue = {
   generateQuiz: (noteId: string) => Promise<void>;
   cancelQuizGeneration: () => void;
   quizStatus: QuizStatus;
+  quizNoteId: string | null;
   quizProgress: QuizProgressState;
   quizError: string | null;
   quizResult: Record<string, unknown> | null;
@@ -166,6 +167,7 @@ export function AppProvider({
   const [apiModalOpen, setApiModalOpen] = useState(false);
 
   const [quizStatus, setQuizStatus] = useState<QuizStatus>("idle");
+  const [quizNoteId, setQuizNoteId] = useState<string | null>(null);
   const [quizProgress, setQuizProgress] =
     useState<QuizProgressState>(EMPTY_PROGRESS);
   const [quizError, setQuizError] = useState<string | null>(null);
@@ -434,6 +436,7 @@ export function AppProvider({
     streamControllerRef.current?.abort();
     streamControllerRef.current = null;
     activeQuizIdRef.current = null;
+    setQuizNoteId(null);
 
     setQuizStatus((current) =>
       current === "generating" ? "cancelled" : current,
@@ -444,6 +447,7 @@ export function AppProvider({
     streamControllerRef.current?.abort();
     streamControllerRef.current = null;
     activeQuizIdRef.current = null;
+    setQuizNoteId(null);
 
     setQuizStatus("idle");
     setQuizProgress(EMPTY_PROGRESS);
@@ -474,6 +478,7 @@ export function AppProvider({
       const controller = new AbortController();
       streamControllerRef.current = controller;
       activeQuizIdRef.current = noteId;
+      setQuizNoteId(noteId);
 
       setQuizStatus("generating");
       setQuizProgress(EMPTY_PROGRESS);
@@ -649,6 +654,7 @@ export function AppProvider({
         if (streamControllerRef.current === controller) {
           streamControllerRef.current = null;
           activeQuizIdRef.current = null;
+          setQuizNoteId(null);
         }
       }
     },
@@ -721,6 +727,7 @@ export function AppProvider({
       generateQuiz,
       cancelQuizGeneration,
       quizStatus,
+      quizNoteId,
       quizProgress,
       quizError,
       quizResult,
@@ -759,6 +766,7 @@ export function AppProvider({
       generateQuiz,
       cancelQuizGeneration,
       quizStatus,
+      quizNoteId,
       quizProgress,
       quizError,
       quizResult,

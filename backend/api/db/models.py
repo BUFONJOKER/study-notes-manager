@@ -25,7 +25,7 @@ class Note(Base):
     analysis_result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     summary_result: Mapped[str | None] = mapped_column(String, nullable=True)
     key_concepts: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
-    quiz: Mapped[str | None] = mapped_column(String, nullable=True)
+    generated_questions: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True)
 
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),

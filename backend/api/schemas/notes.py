@@ -1,10 +1,13 @@
 """
 Schemas for note-related data structures.
 """
-from pydantic import BaseModel, Field, field_serializer, ConfigDict
+
+from pydantic import BaseModel, Field, field_serializer, ConfigDict, field_validator
+import json
 from datetime import datetime
 
 from agent.schemas.analysis import StudyNotesAnalysis
+from agent.schemas.quiz_generation import QuizQuestion
 
 
 class NoteCreate(BaseModel):
@@ -32,10 +35,9 @@ class NoteCreate(BaseModel):
         default=None, example=["concept1", "concept2", "concept3"]
     )
 
-    quiz: str | None = Field(
+    generated_questions: list[QuizQuestion] | None = Field(
         default=None,
-        example=["What is concept1?", "Explain concept2.", "Describe concept3."],
-        description="Quiz generated related to the note. which will be generated later in the workflow and can be updated later.",
+        description="Structured multiple-choice questions generated for the note.",
     )
 
 
@@ -86,16 +88,27 @@ class NoteResponse(BaseModel):
         default=None, example=["concept1", "concept2", "concept3"]
     )
 
-    quiz: str | None = Field(
+    generated_questions: list[QuizQuestion] | None = Field(
         default=None,
-        example=["What is concept1?", "Explain concept2.", "Describe concept3."],
-        description="Quiz generated related to the note. which will be generated later in the workflow and can be updated later.",
+        description="Structured multiple-choice questions generated for the note.",
     )
+
     created_at: datetime = Field(..., example="2023-01-01T12:00:00Z")
     updated_at: datetime = Field(..., example="2023-01-02T12:00:00Z")
 
     class Config:
         from_attributes = True
+
+    @field_validator("generated_questions", mode="before")
+    @classmethod
+    def parse_generated_questions(cls, v):
+        """Safely parse stringified JSON from SQLite into a list before validation."""
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return []
+        return v
 
     @field_serializer("created_at", "updated_at")
     def serialize_datetime(self, value: datetime) -> str:
@@ -127,8 +140,9 @@ class QuizGenerationResponse(BaseModel):
     )
     summary_result: str = Field(..., example="This is the summary result of the note.")
     key_concepts: list[str] = Field(..., example=["concept1", "concept2", "concept3"])
-    generated_questions: list[str] = Field(
-        ..., example=["What is concept1?", "Explain concept2.", "Describe concept3."]
+    generated_questions: list[QuizQuestion] = Field(
+        ...,
+        description="Structured multiple-choice questions generated for the note.",
     )
     telemetry: UsageTelemetry = Field(
         ..., description="Telemetry data related to the note processing workflow."

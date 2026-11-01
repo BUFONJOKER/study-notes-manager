@@ -3,10 +3,13 @@
 import json
 import logging
 import time
+import asyncio
 from collections.abc import AsyncIterator
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.sse import EventSourceResponse, ServerSentEvent
+
+from starlette.concurrency import run_in_threadpool
 
 from typing import Annotated
 from sqlalchemy.orm import Session
@@ -126,7 +129,7 @@ def create_note(request: NoteCreate, db: DBDep, current_user: current_user_dep):
         ),
         summary_result=request.summary_result,
         key_concepts=request.key_concepts,
-        quiz=request.quiz,
+        generated_questions=request.generated_questions,
         created_at=datetime.now(),
         updated_at=datetime.now(),
     )
@@ -251,7 +254,14 @@ def _save_quiz(db: Session, db_note: Note, result: dict) -> None:
 
     db_note.summary_result = result.get("summary_result")
     db_note.key_concepts = result.get("key_concepts")
-    db_note.quiz = json.dumps(result["generated_questions"])
+    db_note.generated_questions = json.dumps(
+        [
+            question.model_dump(mode="json")
+            if hasattr(question, "model_dump")
+            else question
+            for question in result["generated_questions"]
+        ]
+    )
 
     try:
         db_note.updated_at = datetime.now()
@@ -272,8 +282,9 @@ async def quiz_generation(
 ) -> AsyncIterator[ServerSentEvent]:
     """Generate a quiz and stream workflow updates. Protected endpoint."""
 
-    db_note = (
-        db.query(Note)
+    # run the blocking database query in a thread pool to avoid blocking the event loop
+    db_note = await run_in_threadpool(
+        lambda: db.query(Note)
         .filter(
             Note.note_id == note_id,
             Note.user_id == current_user.user_id,
@@ -302,36 +313,79 @@ async def quiz_generation(
         "run_name": "quiz_generation" + "-" + thread_id,
     }
 
+    # Queue to communicate between the background task and the SSE generator
+    # None signals completion, Exception signals failure
+    queue: asyncio.Queue = asyncio.Queue()
+    async def _run_workflow():
+        """Run workflow in a detached task, outside the request cancel scope."""
+        try:
+            with get_usage_metadata_callback() as usage_callback:
+                async for update in workflow.astream(
+                    initial_state.model_dump(), stream_mode="updates", config=config
+                ):
+                    for node_name, node_update in update.items():
+                        result.update(node_update)
+                        # Put each update into the queue for the SSE generator
+                        await queue.put(("update", node_name, node_update))
+
+            execution_time = time.perf_counter() - start_time
+
+            result["telemetry"] = {
+                "execution_time_seconds": round(execution_time, 4),
+                "tokens": _usage_telemetry(usage_callback.usage_metadata),
+            }
+
+            # Signal completion
+            await queue.put(("done", None, None))
+
+        except Exception as e:
+            # Signal failure
+            await queue.put(("error", None, e))
+
+    # ✅ create_task() schedules the coroutine on the event loop
+    # independently of the current request's AnyIO cancel scope
+    task = asyncio.create_task(_run_workflow())
+
     try:
-        with get_usage_metadata_callback() as usage_callback:
-            async for update in workflow.astream(
-                initial_state.model_dump(), stream_mode="updates", config=config
-            ):
-                for node_name, node_update in update.items():
-                    result.update(node_update)
-                    yield ServerSentEvent(
-                        event="workflow_update",
-                        data={"node": node_name, "data": node_update},
-                    )
-        execution_time = time.perf_counter() - start_time
+        while True:
+            # Wait for the next item from the background task
+            event_type, node_name, payload = await queue.get()
 
-        result["telemetry"] = {
-            "execution_time_seconds": round(execution_time, 4),
-            "tokens": _usage_telemetry(usage_callback.usage_metadata),
-        }
-        _save_quiz(db, db_note, result)
+            if event_type == "update":
+                yield ServerSentEvent(
+                    event="workflow_update",
+                    data={"node": node_name, "data": payload},
+                )
+            elif event_type == "done":
+                # sheild the DB save from cancellation
+                await asyncio.shield(run_in_threadpool(_save_quiz, db, db_note, result))
 
-        response_data = QuizGenerationResponse(
-            **result,
-            user_id=db_note.user_id,
-            title=db_note.title,
-        ).model_dump()
+                response_data = QuizGenerationResponse(
+                    **result,
+                    user_id=db_note.user_id,
+                    title=db_note.title,
+                ).model_dump()
 
-        yield ServerSentEvent(event="complete", data=response_data)
+                yield ServerSentEvent(event="complete", data=response_data)
 
-    except Exception as e:
-        logger.exception("Quiz generation failed for note %s", note_id)
-        yield ServerSentEvent(
-            event="error",
-            data={"error": f"Quiz generation failed. Please try again due to {e}."},
-        )
+                break
+
+            elif event_type == "error":
+                logger.exception("Quiz generation failed for note %s", node_name)
+                yield ServerSentEvent(
+                    event="error",
+                    data={"error": f"Quiz generation failed: {payload}"},
+                )
+                break
+
+
+
+    except asyncio.CancelledError:
+        logger.warning("Quiz generation cancelled for note %s", note_id)
+        # Task keeps running even after client disconnects
+        # because it was created with create_task()
+
+    finally:
+        # If SSE generator exits but task is still running, let it finish
+        if not task.done():
+            logger.info("Background task still running for note %s", note_id)

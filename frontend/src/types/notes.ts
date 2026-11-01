@@ -24,7 +24,7 @@ export type NoteCreate = {
   analysis_result: StudyNotesAnalysis | null;
   summary_result: string | null;
   key_concepts: string[] | null;
-  quiz: string | null;
+  generated_questions: QuizQuestion[] | null;
 };
 
 /** Schema for updating an existing note. */
@@ -44,10 +44,17 @@ export type NoteResponse = {
   analysis_result: StudyNotesAnalysis | null;
   summary_result: string | null;
   key_concepts: string[] | null;
-  quiz: string[] | null;
+  generated_questions: QuizQuestion[] | null;
   created_at: string; // ISO format string from serialize_datetime
   updated_at: string; // ISO format string from serialize_datetime
 };
+
+export type QuizQuestion = {
+  question_text: string;
+  answer_options: string[];
+  correct_answer: string;
+};
+
 
 /** Result returned after running the complete note-processing workflow. */
 export type QuizGenerationResponse = {
@@ -57,7 +64,7 @@ export type QuizGenerationResponse = {
   analysis_result: StudyNotesAnalysis;
   summary_result: string;
   key_concepts: string[];
-  generated_questions: string[];
+  generated_questions: QuizQuestion[];
   telemetry: UsageTelemetry;
 };
 

@@ -48,7 +48,16 @@ function extractHeadings(content: string) {
 
 export function NoteDetail({ note_id }: { note_id: string }) {
   const router = useRouter();
-  const { getNote, selectNote, requestDelete, requestAi, apiConfigured, notes } = useApp();
+  const {
+    getNote,
+    selectNote,
+    requestDelete,
+    requestAi,
+    apiConfigured,
+    notes,
+    quizStatus,
+    quizNoteId,
+  } = useApp();
   const note = getNote(note_id);
 
   const headings = useMemo(
@@ -133,6 +142,20 @@ export function NoteDetail({ note_id }: { note_id: string }) {
             >
               Generate quiz
             </Button>
+            {quizStatus === "generating" && quizNoteId === note.note_id && (
+              <Button
+                variant="secondary"
+                icon="clock"
+                onClick={() =>
+                  router.push(
+                    `/quiz/generating/${encodeURIComponent(note.note_id)}`,
+                  )
+                }
+                className="border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200"
+              >
+                View quiz progress
+              </Button>
+            )}
           </div>
         </div>
 
@@ -235,26 +258,44 @@ export function NoteDetail({ note_id }: { note_id: string }) {
                 </nav>
               </div>
 
-              {/* Quiz Status Card */}
-              <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xs">
-                <div className="flex items-start gap-3">
-                  <div className="text-emerald-700 dark:text-emerald-400 mt-0.5">
-                    <Icon name="check" size={16} />
-                  </div>
-                  <div className="space-y-1">
-                    <strong className="text-xs font-bold block text-slate-900 dark:text-slate-100">
-                      Quiz available
-                    </strong>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">10 questions generated</p>
-                    <button
-                      onClick={() => router.push(`/quiz`)}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] dark:text-emerald-400 hover:underline pt-1"
-                    >
-                      View quiz <Icon name="chevron" size={12} />
-                    </button>
+              {/* Quiz Status Card with respect to if quiz is generated or not ui should be different if quiz is generated and available */}
+
+              {note.generated_questions !== null ? (
+                <div className="space-y-3 rounded-xl bg-[#E8EFE9] dark:bg-emerald-950/60 p-5 border border-slate-200/40 dark:border-slate-700/50">
+                  <div className="flex items-center gap-3.5">
+                    <div className="text-emerald-700 dark:text-emerald-400 mt-0.5">
+                      <Icon name="check" size={16} />
+                    </div>
+                    <div className="space-y-1">
+                      <strong className="text-xs font-bold block text-slate-900 dark:text-slate-100">
+                        Quiz available
+                      </strong>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">10 questions generated</p>
+                      <button
+                        onClick={() => router.push(`/quiz`)}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] dark:text-emerald-400 hover:underline pt-1"
+                      >
+                        View quiz <Icon name="chevron" size={12} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-3 rounded-xl bg-slate-100 dark:bg-red-950/20 p-5 border border-slate-200/40 dark:border-slate-700/50">
+                  <div className="flex items-center gap-3.5">
+                    <div className="text-red-900 dark:text-red-500 mt-0.5"
+                    >
+                      <Icon name="close" size={16} />
+                    </div>
+                    <div className="space-y-1">
+                      <strong className="text-xs font-bold block text-slate-900 dark:text-slate-100">
+                        No quiz available
+                      </strong>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">Generate a quiz from this note</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
           </aside>

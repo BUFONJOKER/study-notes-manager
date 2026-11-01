@@ -3,6 +3,7 @@
 from pydantic import BaseModel, Field
 
 from agent.schemas.analysis import StudyNotesAnalysis
+from agent.schemas.quiz_generation import QuizQuestion
 
 class AgentState(BaseModel):
     """State passed between nodes in the study notes workflow."""
@@ -13,21 +14,17 @@ class AgentState(BaseModel):
     note_content: str = Field(description="Content of the note.")
 
     analysis_result: StudyNotesAnalysis | None = Field(
-        default=None,
-        description="Structured analysis of the study notes."
+        default=None, description="Structured analysis of the study notes."
     )
 
     summary_result: str = Field(
-        default="",
-        description="Concise summary of the analysis."
+        default="", description="Concise summary of the analysis."
     )
 
     key_concepts: list[str] = Field(
-        default_factory=list,
-        description="Extracted key concepts."
+        default_factory=list, description="Extracted key concepts."
     )
 
-    generated_questions: list[str] = Field(
-        default_factory=list,
-        description="Generated quiz questions."
+    generated_questions: list[QuizQuestion] = Field(
+        default_factory=list, description="Generated structured quiz questions."
     )

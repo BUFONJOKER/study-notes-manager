@@ -105,7 +105,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
         analysis_result: null,
         summary_result: null,
         key_concepts: null,
-        quiz: null,
+        generated_questions: null,
       });
 
       setSaving(false);

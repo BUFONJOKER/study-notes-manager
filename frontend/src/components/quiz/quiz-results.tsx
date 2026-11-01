@@ -13,24 +13,44 @@ import {
   PageHeading,
 } from "@/components/ui";
 
-function parseQuiz(value: unknown): string[] {
+type QuizQuestion = {
+  question: string;
+  options: string[];
+  correctAnswer: string | null;
+};
+
+function parseQuiz(value: unknown): QuizQuestion[] {
   if (Array.isArray(value)) {
     return value.map((item) => {
-      if (typeof item === "string") return item;
+      if (typeof item === "string") {
+        return { question: item, options: [], correctAnswer: null };
+      }
 
       if (item && typeof item === "object") {
         const question = item as Record<string, unknown>;
 
-        return String(
-          question.question ??
-            question.text ??
-            question.content ??
-            JSON.stringify(item),
-        );
+        const options = Array.isArray(question.answer_options)
+          ? question.answer_options.filter((option): option is string => typeof option === "string")
+          : [];
+
+        return {
+          question: String(
+            question.question_text ??
+              question.question ??
+              question.text ??
+              question.content ??
+              JSON.stringify(item),
+          ),
+          options,
+          correctAnswer:
+            typeof question.correct_answer === "string"
+              ? question.correct_answer
+              : null,
+        };
       }
 
-      return String(item);
-    }).filter(Boolean);
+      return { question: String(item), options: [], correctAnswer: null };
+    }).filter((item) => item.question);
   }
 
   if (typeof value !== "string" || !value.trim()) {
@@ -50,7 +70,8 @@ function parseQuiz(value: unknown): string[] {
   return value
     .split(/\r?\n/)
     .map((line) => line.replace(/^\s*(?:\d+[.)]|[-*])\s*/, "").trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((question) => ({ question, options: [], correctAnswer: null }));
 }
 
 export function QuizResults() {
@@ -59,10 +80,12 @@ export function QuizResults() {
   const [copied, setCopied] = useState(false);
   const [copiedQuestion, setCopiedQuestion] = useState<number | null>(null);
   const [copyError, setCopyError] = useState(false);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [submitted, setSubmitted] = useState(false);
 
   const questions = useMemo(
-    () => parseQuiz(selectedNote?.quiz),
-    [selectedNote?.quiz],
+    () => parseQuiz(selectedNote?.generated_questions),
+    [selectedNote?.generated_questions],
   );
 
   const noteTitle = selectedNote?.title ?? "Study quiz";
@@ -74,7 +97,7 @@ export function QuizResults() {
         noteTitle,
         `Subject: ${subject}`,
         "",
-        ...questions.map((question, index) => `${index + 1}. ${question}`),
+        ...questions.map((question, index) => `${index + 1}. ${question.question}`),
       ].join("\n"),
     [noteTitle, subject, questions],
   );
@@ -113,6 +136,22 @@ export function QuizResults() {
 
     URL.revokeObjectURL(url);
   }
+
+  function submitQuiz() {
+    setSubmitted(true);
+  }
+
+  const gradedQuestions = questions.filter(
+    (question) => question.correctAnswer !== null,
+  );
+  const correctAnswers = questions.filter(
+    (question, index) =>
+      question.correctAnswer !== null &&
+      answers[index] === question.correctAnswer,
+  ).length;
+  const scorePercentage = gradedQuestions.length
+    ? Math.round((correctAnswers / gradedQuestions.length) * 100)
+    : 0;
 
   if (!selectedNote) {
     return (
@@ -251,21 +290,70 @@ export function QuizResults() {
                 {questions.map((question, index) => (
                   <article
                     className="question group flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4 transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-slate-800 dark:bg-slate-950/50 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/20 sm:gap-4"
-                    key={`${index}-${question}`}
+                    key={`${index}-${question.question}`}
                   >
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-semibold tabular-nums text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
                       {String(index + 1).padStart(2, "0")}
                     </span>
 
-                    <p className="min-w-0 flex-1 pt-1 text-sm leading-6 text-slate-800 dark:text-slate-200">
-                      {question}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <p className="pt-1 text-sm leading-6 text-slate-800 dark:text-slate-200">
+                        {question.question}
+                      </p>
+
+                      {question.options.length === 4 && (
+                        <div className="mt-4 grid gap-2">
+                          {question.options.map((option) => {
+                            const isSelected = answers[index] === option;
+                            const isCorrect = question.correctAnswer === option;
+                            const isWrongSelection =
+                              submitted && isSelected && !isCorrect;
+
+                            return (
+                              <label
+                                key={option}
+                                className={cn(`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                                  submitted && isCorrect
+                                    ? "border-emerald-400 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200"
+                                    : isWrongSelection
+                                      ? "border-rose-400 bg-rose-50 text-rose-800 dark:bg-rose-950/30 dark:text-rose-200"
+                                      : isSelected
+                                        ? "border-indigo-400 bg-indigo-50 text-indigo-800 dark:bg-indigo-950/30 dark:text-indigo-200"
+                                        : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                                }`)}
+                              >
+                                <input
+                                  type="radio"
+                                  name={`question-${index}`}
+                                  value={option}
+                                  checked={isSelected}
+                                  disabled={submitted}
+                                  onChange={() =>
+                                    setAnswers((current) => ({
+                                      ...current,
+                                      [index]: option,
+                                    }))
+                                  }
+                                />
+                                <span>{option}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {submitted && question.correctAnswer && (
+                        <p className="mt-3 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                          Correct answer: {question.correctAnswer}
+                        </p>
+                      )}
+                    </div>
 
                     <button
                       type="button"
                       aria-label={`Copy question ${index + 1}`}
                       title="Copy question"
-                      onClick={() => void copyText(question, index)}
+                      onClick={() => void copyText(question.question, index)}
                       className="flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-indigo-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-slate-400 dark:hover:bg-indigo-950 dark:hover:text-indigo-300"
                     >
                       <Icon
@@ -294,6 +382,21 @@ export function QuizResults() {
                     Generate quiz
                   </Button>
                 </div>
+              </div>
+            )}
+
+            {questions.length > 0 && (
+              <div className="mt-5">
+                {!submitted ? (
+                  <Button onClick={submitQuiz}>Submit quiz</Button>
+                ) : (
+                  <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-900/60 dark:bg-indigo-950/30">
+                    <p className="font-semibold text-indigo-900 dark:text-indigo-100">
+                      You got {correctAnswers} of {gradedQuestions.length}{" "}
+                      questions correct ({scorePercentage}%).
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </section>

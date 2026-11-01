@@ -69,7 +69,7 @@ export function RecentNotesPanel({
                 </div>
               </div>
 
-              {note.quiz && (
+              {note.generated_questions !== null && (
                 <span className={cn("quiz-ready")}>
                   <Icon name="sparkle" size={14} /> Quiz ready
                 </span>
