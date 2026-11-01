@@ -19,7 +19,7 @@ const newsreader = Newsreader({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Noteflow", template: "%s · Noteflow" },
+  title: { default: "Noteflow", template: "Noteflow - %s" },
   description: "Study workspace: organize notes and generate practice quizzes.",
 };
 

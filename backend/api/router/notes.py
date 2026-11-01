@@ -293,11 +293,19 @@ async def quiz_generation(
 
     result = initial_state.model_dump()
     start_time = time.perf_counter()
+    thread_id = result["note_id"] + "-" + result["note_title"] + "-" + str(int(start_time * 1000))
+    # Pass the thread_id inside configuration dictionary
+    config = {
+        "configurable": {
+            "thread_id": thread_id
+        },
+        "run_name": "quiz_generation" + "-" + thread_id,
+    }
 
     try:
         with get_usage_metadata_callback() as usage_callback:
             async for update in workflow.astream(
-                initial_state.model_dump(), stream_mode="updates"
+                initial_state.model_dump(), stream_mode="updates", config=config
             ):
                 for node_name, node_update in update.items():
                     result.update(node_update)

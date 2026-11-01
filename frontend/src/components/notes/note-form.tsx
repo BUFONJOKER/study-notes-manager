@@ -27,10 +27,18 @@ function normalizeContent(content: string): string {
 export function NoteForm({ mode, note }: NoteFormProps) {
   const router = useRouter();
   const { notes, profile, saveNote } = useApp();
+
+  const generateNoteId = (subject: string): string => {
+    const subjectPrefix = subject.substring(0, 3).toUpperCase();
+    const randomNumber1 = Math.floor(Math.random() * 900) + 100;
+    const randomNumber2 = Math.floor(Math.random() * 900) + 100;
+    return `${subjectPrefix}-${randomNumber1}-${randomNumber2}`;
+  }
+
   const [form, setForm] = useState<FormState>({
+    subject: note?.subject || "",
     note_id: note && "note_id" in note ? note.note_id : "",
     title: note?.title || "",
-    subject: note?.subject || "",
     content: note?.content || "",
   });
   const subjectsList = [
@@ -55,6 +63,13 @@ export function NoteForm({ mode, note }: NoteFormProps) {
     : routes.notes;
   const duplicateId = mode === "create" && notes.some((n) => n.note_id === form.note_id.trim().toUpperCase());
   const update = (field: keyof FormState, value: string) => setForm((current) => ({ ...current, [field]: value }));
+  const handleSubjectChange = (subject: string) => {
+    setForm((current) => ({
+      ...current,
+      subject,
+      ...(mode === "create" ? { note_id: subject ? generateNoteId(subject) : "" } : {}),
+    }));
+  };
   const error = (field: keyof FormState) => submitted && !form[field];
 
 
@@ -99,6 +114,8 @@ export function NoteForm({ mode, note }: NoteFormProps) {
   };
 
   return (
+    // subject should be in first so it can be used for note_id
+
     <div className={cn("page narrow-page")}>
       <BackLink href={backHref}>Back to {mode === "edit" ? "note" : "all notes"}</BackLink>
       <PageHeading
@@ -123,6 +140,17 @@ export function NoteForm({ mode, note }: NoteFormProps) {
             </div>
           </div>
           <div className={cn("form-grid")}>
+            <label className={cn("span-two")}>
+              <span>Subject <b>*</b></span>
+              <select value={form.subject} onChange={(e) => handleSubjectChange(e.target.value)} className={cn(error("subject") ? "invalid" : "")}>
+                <option value="">Select a subject</option>
+                {subjectsList.map((subject) => (
+                  <option key={subject} value={subject}>
+                    {subject}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label>
               <span>Note ID <b>*</b></span>
               <input
@@ -141,17 +169,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
               <input value={form.title} onChange={(e) => update("title", e.target.value)} className={cn(error("title") ? "invalid" : "")} placeholder="What is this note about?" />
               {error("title") && <small className={cn("field-error")}>Add a title for your note</small>}
             </label>
-            <label className={cn("span-two")}>
-              <span>Subject <b>*</b></span>
-              <select value={form.subject} onChange={(e) => update("subject", e.target.value)} className={cn(error("subject") ? "invalid" : "")}>
-                <option value="">Select a subject</option>
-                {subjectsList.map((subject) => (
-                  <option key={subject} value={subject}>
-                    {subject}
-                  </option>
-                ))}
-              </select>
-            </label>
+
           </div>
         </section>
 
