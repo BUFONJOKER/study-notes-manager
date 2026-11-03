@@ -247,8 +247,22 @@ export function AppProvider({
 
         // ✅ Listen for changes and re-fetch notes
         ws.onmessage = async (event) => {
-          const notesResponse = await api.get<NoteResponse[]>(`/notes/read_note`, { headers: authHeaders });
-          setNotes(notesResponse.data);
+          const message = event.data as string;
+
+          // Re-fetch notes on any change
+          if (
+            message.startsWith("note_created:") ||
+            message.startsWith("note_updated:") ||
+            message.startsWith("note_deleted:") ||
+            message.startsWith("quiz_saved:")
+          ) {
+            const notesResponse = await api.get<NoteResponse[]>(
+              `/notes/read_note`,
+              { headers: authHeaders }
+            );
+            setNotes(notesResponse.data);
+            setIsNewUser(notesResponse.data.length === 0);
+          }
         };
 
         ws.onerror = (error) => {
