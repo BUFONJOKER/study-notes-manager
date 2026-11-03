@@ -7,7 +7,7 @@ import { NoteNotFound } from "./note-not-found";
 export function EditNote({ note_id }: { note_id: string }) {
   const { getNote } = useApp();
   const note = getNote(note_id);
-
+  // console.log("EditNote: note_id:", note_id, "note:", note);
   if (!note) return <NoteNotFound />;
   return <NoteForm mode="edit" note={note} />;
 }

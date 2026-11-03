@@ -26,13 +26,19 @@ function normalizeContent(content: string): string {
 
 export function NoteForm({ mode, note }: NoteFormProps) {
   const router = useRouter();
-  const { notes, profile, saveNote } = useApp();
+  const { notes, profile, saveNote, updateNote } = useApp();
 
   const generateNoteId = (subject: string): string => {
     const subjectPrefix = subject.substring(0, 3).toUpperCase();
-    const randomNumber1 = Math.floor(Math.random() * 900) + 100;
-    const randomNumber2 = Math.floor(Math.random() * 900) + 100;
-    return `${subjectPrefix}-${randomNumber1}-${randomNumber2}`;
+    let candidate = "";
+
+    do {
+      const randomNumber1 = Math.floor(Math.random() * 900) + 100;
+      const randomNumber2 = Math.floor(Math.random() * 900) + 100;
+      candidate = `${subjectPrefix}-${randomNumber1}-${randomNumber2}`;
+    } while (notes.some((item) => item.note_id === candidate));
+
+    return candidate;
   }
 
   const [form, setForm] = useState<FormState>({
@@ -59,7 +65,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
 
   //  Fixed safe code:
   const backHref = mode === "edit" && note && "note_id" in note
-    ? routes.note(note.note_id)
+    ? routes.editNote(note.note_id)
     : routes.notes;
   const duplicateId = mode === "create" && notes.some((n) => n.note_id === form.note_id.trim().toUpperCase());
   const update = (field: keyof FormState, value: string) => setForm((current) => ({ ...current, [field]: value }));
@@ -76,7 +82,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
 
 
 
-  const submit = (e: SubmitEvent<HTMLFormElement>) => {
+  const submit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitted(true);
 
@@ -96,21 +102,30 @@ export function NoteForm({ mode, note }: NoteFormProps) {
 
     setSaving(true);
 
-    setTimeout(() => {
-      saveNote({
-        note_id: id,
-        title,
-        subject: form.subject,
-        content,
-        analysis_result: null,
-        summary_result: null,
-        key_concepts: null,
-        generated_questions: null,
-      });
-
+    try {
+      if (mode === "edit" && note && "note_id" in note) {
+        await updateNote(note.note_id, {
+          title,
+          subject: form.subject,
+          content,
+        });
+        router.push(routes.note(note.note_id));
+      } else {
+        await saveNote({
+          note_id: id,
+          title,
+          subject: form.subject,
+          content,
+          analysis_result: null,
+          summary_result: null,
+          key_concepts: null,
+          generated_questions: null,
+        });
+        router.push(routes.note(id));
+      }
+    } finally {
       setSaving(false);
-      router.push(routes.note(id));
-    }, 700);
+    }
   };
 
   return (
@@ -215,7 +230,13 @@ export function NoteForm({ mode, note }: NoteFormProps) {
           <div>
             <Button variant="secondary" onClick={() => router.push(backHref)}>Cancel</Button>
             <Button type="submit" icon={saving ? undefined : "check"} disabled={saving}>
-              {saving ? "Saving…" : mode === "create" ? "Save note" : "Save changes"}
+              {saving
+                ? mode === "create"
+                  ? "Creating…"
+                  : "Updating…"
+                : mode === "create"
+                  ? "Create note"
+                  : "Update note"}
             </Button>
           </div>
         </div>

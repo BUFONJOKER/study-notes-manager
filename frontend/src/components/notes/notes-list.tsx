@@ -12,12 +12,14 @@ import {useSearchParams} from "next/navigation";
 import {useEffect} from "react";
 
 const ALL_SUBJECTS = "All subjects";
+type SortOption = "updated" | "created" | "title";
 
 export function NotesList() {
   const router = useRouter();
   const { notes } = useApp();
   const [query, setQuery] = useState("");
   const [subject, setSubject] = useState(ALL_SUBJECTS);
+  const [sortBy, setSortBy] = useState<SortOption>("updated");
   const searchParams = useSearchParams();
   const urlSubject = searchParams.get("subject");
   // If a subject is specified in the URL then only notes for that subject should be shown, and the subject filter should be disabled.
@@ -27,15 +29,22 @@ export function NotesList() {
 
 
 
-  const visible = useMemo(
-    () =>
-      notes.filter(
+  const visible = useMemo(() => {
+    const filtered = notes.filter(
         (n) =>
           (subject === ALL_SUBJECTS || n.subject === subject ) &&
           `${n.title} ${n.subject} ${n.note_id}`.toLowerCase().includes(query.toLowerCase()),
-      ),
-    [notes, query, subject],
-  );
+      );
+
+    return [...filtered].sort((a, b) => {
+      if (sortBy === "title") {
+        return a.title.localeCompare(b.title);
+      }
+
+      const field = sortBy === "created" ? "created_at" : "updated_at";
+      return new Date(b[field]).getTime() - new Date(a[field]).getTime();
+    });
+  }, [notes, query, subject, sortBy]);
 
   return (
     <div className={cn("page")}>
@@ -52,10 +61,14 @@ export function NotesList() {
           <option>{ALL_SUBJECTS}</option>
           {subjectOptions.map((name) => <option key={name}>{name}</option>)}
         </select>
-        <select aria-label="Sort notes">
-          <option>Recently updated</option>
-          <option>Recently created</option>
-          <option>Title A–Z</option>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as SortOption)}
+          aria-label="Sort notes"
+        >
+          <option value="updated">Recently updated</option>
+          <option value="created">Recently created</option>
+          <option value="title">Title A–Z</option>
         </select>
       </div>
 

@@ -78,6 +78,8 @@ type AppContextValue = {
 
   actionError: string | null;
   clearActionError: () => void;
+  actionNotice: string | null;
+  clearActionNotice: () => void;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -174,9 +176,14 @@ export function AppProvider({
   const streamControllersRef = useRef<Record<string, AbortController>>({});
 
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   const clearActionError = useCallback(() => {
     setActionError(null);
+  }, []);
+
+  const clearActionNotice = useCallback(() => {
+    setActionNotice(null);
   }, []);
 
   const authHeaders = useMemo(
@@ -351,6 +358,7 @@ export function AppProvider({
 
       setSelectedId(savedNote.note_id);
       setIsNewUser(false);
+      setActionNotice("Note created successfully.");
     }),
     [authHeaders],
   );
@@ -370,6 +378,7 @@ export function AppProvider({
           item.note_id === noteId ? updatedNote : item,
         ),
       );
+      setActionNotice("Note updated successfully.");
     }),
     [authHeaders],
   );
@@ -403,6 +412,7 @@ export function AppProvider({
 
       setIsNewUser(notes.length <= 1);
       setDeleteTarget(null);
+      setActionNotice("Note deleted successfully.");
     }),
     [deleteTarget, authHeaders, notes.length]
   );
@@ -806,6 +816,8 @@ export function AppProvider({
 
       actionError,
       clearActionError,
+      actionNotice,
+      clearActionNotice,
     }),
     [
       token,
@@ -838,6 +850,8 @@ export function AppProvider({
       requestAi,
       clearActionError,
       actionError,
+      clearActionNotice,
+      actionNotice,
     ],
   );
 
