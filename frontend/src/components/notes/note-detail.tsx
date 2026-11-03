@@ -55,8 +55,7 @@ export function NoteDetail({ note_id }: { note_id: string }) {
     requestAi,
     apiConfigured,
     notes,
-    quizStatus,
-    quizNoteId,
+    getQuizState,
   } = useApp();
   const note = getNote(note_id);
 
@@ -142,7 +141,7 @@ export function NoteDetail({ note_id }: { note_id: string }) {
             >
               Generate quiz
             </Button>
-            {quizStatus === "generating" && quizNoteId === note.note_id && (
+            {getQuizState(note.note_id).status === "generating" && (
               <Button
                 variant="secondary"
                 icon="clock"

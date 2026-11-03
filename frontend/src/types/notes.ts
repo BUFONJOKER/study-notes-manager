@@ -81,3 +81,10 @@ export type QuizProgressState = {
   data: unknown;
   history: string[];
 };
+
+export type QuizState = {
+  status: QuizStatus;
+  progress: QuizProgressState;
+  error: string | null;
+  result: Record<string, unknown> | null;
+};

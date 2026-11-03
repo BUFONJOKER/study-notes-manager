@@ -13,7 +13,7 @@ NOTE_COLUMNS = (
     "analysis_result",
     "summary_result",
     "key_concepts",
-    "quiz",
+    "generated_questions",
     "created_at",
     "updated_at",
 )

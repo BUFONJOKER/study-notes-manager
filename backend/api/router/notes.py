@@ -277,7 +277,7 @@ def _initial_agent_state(db_note: Note) -> AgentState:
     )
 
 
-async def _save_quiz(db: Session, db_note: Note, result: dict, manager: ConnectionManager) -> None:
+def _save_quiz(db: Session, db_note: Note, result: dict) -> None:
     """Save generated quiz questions to a note."""
 
     analysis_result = result.get("analysis_result")
@@ -303,8 +303,6 @@ async def _save_quiz(db: Session, db_note: Note, result: dict, manager: Connecti
         db_note.updated_at = datetime.now()
         db.commit()
         db.refresh(db_note)
-
-        await manager.broadcast(f"quiz_saved:{db_note.note_id}")
 
     except Exception as e:
         db.rollback()
@@ -402,8 +400,9 @@ async def quiz_generation(
                     data={"node": node_name, "data": payload},
                 )
             elif event_type == "done":
-                # sheild the DB save from cancellation
-                await asyncio.shield(run_in_threadpool(_save_quiz, db, db_note, result, manager))
+                # Shield the blocking database save from request cancellation.
+                await asyncio.shield(run_in_threadpool(_save_quiz, db, db_note, result))
+                await asyncio.shield(manager.broadcast(f"quiz_saved:{db_note.note_id}"))
 
                 response_data = QuizGenerationResponse(
                     **result,

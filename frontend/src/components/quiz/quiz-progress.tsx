@@ -23,9 +23,7 @@ export function QuizProgress() {
 
   const {
     getNote,
-    quizStatus,
-    quizProgress,
-    quizError,
+    getQuizState,
     generateQuiz,
     cancelQuizGeneration,
     resetQuizState,
@@ -33,6 +31,8 @@ export function QuizProgress() {
 
   const startedForRef = useRef<string | null>(null);
   const note = getNote(noteId);
+  const { status: quizStatus, progress: quizProgress, error: quizError } =
+    getQuizState(noteId);
 
   const isGenerating = quizStatus === "generating";
   const isCompleted = quizStatus === "completed";
@@ -56,13 +56,13 @@ export function QuizProgress() {
   }, [isCompleted, router]);
 
   function retryGeneration() {
-    resetQuizState();
+    resetQuizState(noteId);
     startedForRef.current = noteId;
     void generateQuiz(noteId);
   }
 
   function cancelAndGoBack() {
-    cancelQuizGeneration();
+    cancelQuizGeneration(noteId);
     router.back();
   }
 

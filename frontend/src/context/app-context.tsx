@@ -24,7 +24,8 @@ import type {
   NoteResponse,
   QuizStatus,
   QuizProgressState,
-  QuizGenerationResponse
+  QuizGenerationResponse,
+  QuizState
 } from "@/types/notes";
 import type {
   UserCreate,
@@ -62,13 +63,9 @@ type AppContextValue = {
   deleteAccount: (userId: number) => Promise<void>;
 
   generateQuiz: (noteId: string) => Promise<void>;
-  cancelQuizGeneration: () => void;
-  quizStatus: QuizStatus;
-  quizNoteId: string | null;
-  quizProgress: QuizProgressState;
-  quizError: string | null;
-  quizResult: Record<string, unknown> | null;
-  resetQuizState: () => void;
+  getQuizState: (noteId: string) => QuizState;
+  cancelQuizGeneration: (noteId: string) => void;
+  resetQuizState: (noteId: string) => void;
 
   apiConfigured: boolean;
   setApiConfigured: (value: boolean) => void;
@@ -89,6 +86,13 @@ const EMPTY_PROGRESS: QuizProgressState = {
   node: null,
   data: null,
   history: [],
+};
+
+const EMPTY_QUIZ_STATE: QuizState = {
+  status: "idle",
+  progress: EMPTY_PROGRESS,
+  error: null,
+  result: null,
 };
 
 function getErrorMessage(error: unknown): string {
@@ -166,16 +170,8 @@ export function AppProvider({
   const [apiConfigured, setApiConfigured] = useState(false);
   const [apiModalOpen, setApiModalOpen] = useState(false);
 
-  const [quizStatus, setQuizStatus] = useState<QuizStatus>("idle");
-  const [quizNoteId, setQuizNoteId] = useState<string | null>(null);
-  const [quizProgress, setQuizProgress] =
-    useState<QuizProgressState>(EMPTY_PROGRESS);
-  const [quizError, setQuizError] = useState<string | null>(null);
-  const [quizResult, setQuizResult] =
-    useState<Record<string, unknown> | null>(null);
-
-  const streamControllerRef = useRef<AbortController | null>(null);
-  const activeQuizIdRef = useRef<string | null>(null);
+  const [quizStates, setQuizStates] = useState<Record<string, QuizState>>({});
+  const streamControllersRef = useRef<Record<string, AbortController>>({});
 
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -461,59 +457,41 @@ export function AppProvider({
   // SSE quiz generation
   // --------------------------------------------------
 
-  const cancelQuizGeneration = useCallback(() => {
-    streamControllerRef.current?.abort();
-    streamControllerRef.current = null;
-    activeQuizIdRef.current = null;
-    setQuizNoteId(null);
-
-    setQuizStatus((current) =>
-      current === "generating" ? "cancelled" : current,
-    );
-  }, []);
-
-  const resetQuizState = useCallback(() => {
-    streamControllerRef.current?.abort();
-    streamControllerRef.current = null;
-    activeQuizIdRef.current = null;
-    setQuizNoteId(null);
-
-    setQuizStatus("idle");
-    setQuizProgress(EMPTY_PROGRESS);
-    setQuizError(null);
-    setQuizResult(null);
-  }, []);
+  const getQuizState = useCallback(
+    (noteId: string): QuizState => quizStates[noteId] ?? EMPTY_QUIZ_STATE,
+    [quizStates],
+  );
 
   const generateQuiz = useCallback(
     async (noteId: string) => {
       if (!noteId.trim()) {
-        const msg = "A note ID is required.";
-        setQuizError(msg);
-        setActionError(msg);
-        setQuizStatus("error");
+        const message = "A note ID is required.";
+        setQuizStates((current) => ({
+          ...current,
+          [noteId]: {
+            ...EMPTY_QUIZ_STATE,
+            status: "error",
+            error: message,
+          },
+        }));
+        setActionError(message);
         return;
       }
 
-      if (
-        activeQuizIdRef.current === noteId &&
-        streamControllerRef.current &&
-        !streamControllerRef.current.signal.aborted
-      ) {
-        return;
-      }
-
-      streamControllerRef.current?.abort();
+      streamControllersRef.current[noteId]?.abort();
 
       const controller = new AbortController();
-      streamControllerRef.current = controller;
-      activeQuizIdRef.current = noteId;
-      setQuizNoteId(noteId);
+      streamControllersRef.current[noteId] = controller;
 
-      setQuizStatus("generating");
-      setQuizProgress(EMPTY_PROGRESS);
-      setQuizError(null);
-      setQuizResult(null);
-      setActionError(null);
+      setQuizStates((current) => ({
+        ...current,
+        [noteId]: {
+          status: "generating",
+          progress: { ...EMPTY_PROGRESS, history: [] },
+          error: null,
+          result: null,
+        },
+      }));
 
       let receivedCompleteEvent = false;
 
@@ -591,6 +569,8 @@ export function AppProvider({
           }
 
           if (eventName === "workflow_update") {
+            if (streamControllersRef.current[noteId] !== controller) return;
+
             const update = data as {
               node?: string;
               data?: unknown;
@@ -598,24 +578,41 @@ export function AppProvider({
 
             if (!update.node) return;
 
-            setQuizProgress((current) => ({
-              node: update.node!,
-              data: update.data ?? null,
-              history: current.history.includes(update.node!)
-                ? current.history
-                : [...current.history, update.node!],
-            }));
+            setQuizStates((current) => {
+              const state = current[noteId] ?? EMPTY_QUIZ_STATE;
+              return {
+                ...current,
+                [noteId]: {
+                  ...state,
+                  progress: {
+                    node: update.node!,
+                    data: update.data ?? null,
+                    history: state.progress.history.includes(update.node!)
+                      ? state.progress.history
+                      : [...state.progress.history, update.node!],
+                  },
+                },
+              };
+            });
 
             return;
           }
 
           if (eventName === "complete") {
+            if (streamControllersRef.current[noteId] !== controller) return;
+
             const result = data as QuizGenerationResponse;
             receivedCompleteEvent = true;
 
-            setQuizResult(result);
-            setQuizStatus("completed");
-            setQuizError(null);
+            setQuizStates((current) => ({
+              ...current,
+              [noteId]: {
+                ...(current[noteId] ?? EMPTY_QUIZ_STATE),
+                status: "completed",
+                error: null,
+                result,
+              },
+            }));
 
             setNotes((current) =>
               current.map((note) =>
@@ -670,31 +667,72 @@ export function AppProvider({
         if (!receivedCompleteEvent && !controller.signal.aborted) {
           throw new Error("The stream ended before quiz generation completed.");
         }
+
+        setQuizStates((current) => ({
+          ...current,
+          [noteId]: {
+            ...(current[noteId] ?? EMPTY_QUIZ_STATE),
+            status: "completed",
+          },
+        }));
       } catch (error) {
         if (controller.signal.aborted) return;
 
+        if (streamControllersRef.current[noteId] !== controller) return;
+
+        setQuizStates((current) => ({
+          ...current,
+          [noteId]: {
+            ...(current[noteId] ?? EMPTY_QUIZ_STATE),
+            status: "error",
+            error: getErrorMessage(error),
+          },
+        }));
+
         const message = getErrorMessage(error);
         if (message) {
-          setQuizError(message);
           setActionError(message);
         }
-        setQuizStatus("error");
       } finally {
-        if (streamControllerRef.current === controller) {
-          streamControllerRef.current = null;
-          activeQuizIdRef.current = null;
-          setQuizNoteId(null);
+        if (streamControllersRef.current[noteId] === controller) {
+          delete streamControllersRef.current[noteId];
         }
       }
     },
     [openaiKey, token],
   );
 
+
+  const cancelQuizGeneration = useCallback((noteId: string) => {
+    streamControllersRef.current[noteId]?.abort();
+    delete streamControllersRef.current[noteId];
+
+    setQuizStates((current) => ({
+      ...current,
+      [noteId]: {
+        ...(current[noteId] ?? EMPTY_QUIZ_STATE),
+        status: "cancelled",
+      },
+    }));
+  }, []);
+
+  const resetQuizState = useCallback((noteId: string) => {
+    streamControllersRef.current[noteId]?.abort();
+    delete streamControllersRef.current[noteId];
+
+    setQuizStates((current) => {
+      const next = { ...current };
+      delete next[noteId];
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     if (sessionStatus === "unauthenticated") {
-      streamControllerRef.current?.abort();
-      streamControllerRef.current = null;
-      activeQuizIdRef.current = null;
+      Object.values(streamControllersRef.current).forEach((controller) => {
+        controller.abort();
+      });
+      streamControllersRef.current = {};
     }
   }, [sessionStatus]);
 
@@ -724,9 +762,8 @@ export function AppProvider({
       }
 
       router.push(`/quiz/generating/${encodeURIComponent(noteId)}`);
-      void generateQuiz(noteId);
     },
-    [apiConfigured, generateQuiz, router],
+    [apiConfigured, router],
   );
 
   const value = useMemo<AppContextValue>(
@@ -754,12 +791,8 @@ export function AppProvider({
       deleteAccount,
 
       generateQuiz,
+      getQuizState,
       cancelQuizGeneration,
-      quizStatus,
-      quizNoteId,
-      quizProgress,
-      quizError,
-      quizResult,
       resetQuizState,
       openaiKey,
       setOpenaiKey,
@@ -793,12 +826,8 @@ export function AppProvider({
       updateUser,
       deleteAccount,
       generateQuiz,
+      getQuizState,
       cancelQuizGeneration,
-      quizStatus,
-      quizNoteId,
-      quizProgress,
-      quizError,
-      quizResult,
       resetQuizState,
       openaiKey,
       setOpenaiKey,
