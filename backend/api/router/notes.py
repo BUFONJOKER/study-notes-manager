@@ -6,7 +6,7 @@ import time
 import asyncio
 from collections.abc import AsyncIterator
 
-from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, Request
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 
 from starlette.concurrency import run_in_threadpool
@@ -26,11 +26,10 @@ from api.db.models import Note, User
 from api.utils.auth import get_current_user, OpenAIKeyDep
 
 from agent.schemas.agent_state import AgentState
-from agent.model.llm import load_llm
-from agent.workflow import build_workflow
+
 
 from config import get_settings, Settings
-from langchain_core.callbacks import get_usage_metadata_callback
+# from langchain_core.callbacks import get_usage_metadata_callback
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 logger = logging.getLogger(__name__)
@@ -63,9 +62,9 @@ async def notes_websocket(websocket: WebSocket, user_id: str):
 
 
 
-GPT_5_NANO_INPUT_USD_PER_MILLION = 0.05
-GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION = 0.005
-GPT_5_NANO_OUTPUT_USD_PER_MILLION = 0.40
+# GPT_5_NANO_INPUT_USD_PER_MILLION = 0.05
+# GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION = 0.005
+# GPT_5_NANO_OUTPUT_USD_PER_MILLION = 0.40
 
 # current user dependency for protected endpoints
 current_user_dep = Annotated[User, Depends(get_current_user)]
@@ -77,40 +76,40 @@ DBDep = Annotated[Session, Depends(get_db)]
 
 
 
-def _usage_telemetry(usage_metadata: dict) -> dict:
-    """Calculate GPT-5 nano usage and standard API pricing."""
+# def _usage_telemetry(usage_metadata: dict) -> dict:
+#     """Calculate GPT-5 nano usage and standard API pricing."""
 
-    input_tokens = sum(
-        usage.get("input_tokens", 0) for usage in usage_metadata.values()
-    )
+#     input_tokens = sum(
+#         usage.get("input_tokens", 0) for usage in usage_metadata.values()
+#     )
 
-    output_tokens = sum(
-        usage.get("output_tokens", 0) for usage in usage_metadata.values()
-    )
+#     output_tokens = sum(
+#         usage.get("output_tokens", 0) for usage in usage_metadata.values()
+#     )
 
-    total_tokens = sum(
-        usage.get("total_tokens", 0) for usage in usage_metadata.values()
-    )
+#     total_tokens = sum(
+#         usage.get("total_tokens", 0) for usage in usage_metadata.values()
+#     )
 
-    cached_input_tokens = sum(
-        usage.get("input_token_details", {}).get("cache_read", 0)
-        for usage in usage_metadata.values()
-    )
+#     cached_input_tokens = sum(
+#         usage.get("input_token_details", {}).get("cache_read", 0)
+#         for usage in usage_metadata.values()
+#     )
 
-    uncached_input_tokens = max(input_tokens - cached_input_tokens, 0)
+#     uncached_input_tokens = max(input_tokens - cached_input_tokens, 0)
 
-    estimated_cost_usd = (
-        (uncached_input_tokens / 1_000_000) * GPT_5_NANO_INPUT_USD_PER_MILLION
-        + (cached_input_tokens / 1_000_000) * GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION
-        + (output_tokens / 1_000_000) * GPT_5_NANO_OUTPUT_USD_PER_MILLION
-    )
-    return {
-        "input": input_tokens,
-        "cached_input": cached_input_tokens,
-        "output": output_tokens,
-        "total": total_tokens,
-        "estimated_cost_usd": round(estimated_cost_usd, 6),
-    }
+#     estimated_cost_usd = (
+#         (uncached_input_tokens / 1_000_000) * GPT_5_NANO_INPUT_USD_PER_MILLION
+#         + (cached_input_tokens / 1_000_000) * GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION
+#         + (output_tokens / 1_000_000) * GPT_5_NANO_OUTPUT_USD_PER_MILLION
+#     )
+#     return {
+#         "input": input_tokens,
+#         "cached_input": cached_input_tokens,
+#         "output": output_tokens,
+#         "total": total_tokens,
+#         "estimated_cost_usd": round(estimated_cost_usd, 6),
+#     }
 
 
 
@@ -278,7 +277,7 @@ def _initial_agent_state(db_note: Note) -> AgentState:
     )
 
 
-async def _save_quiz(db: Session, db_note: Note, result: dict) -> None:
+async def _save_quiz(db: Session, db_note: Note, result: dict, manager: ConnectionManager) -> None:
     """Save generated quiz questions to a note."""
 
     analysis_result = result.get("analysis_result")
@@ -322,6 +321,7 @@ async def quiz_generation(
 ) -> AsyncIterator[ServerSentEvent]:
     """Generate a quiz and stream workflow updates. Protected endpoint."""
 
+
     # run the blocking database query in a thread pool to avoid blocking the event loop
     db_note = await run_in_threadpool(
         lambda: db.query(Note)
@@ -339,8 +339,13 @@ async def quiz_generation(
         )
 
     initial_state = _initial_agent_state(db_note)
+
+    from agent.model.llm import load_llm
+    from agent.workflow import build_workflow
+
     llm = load_llm(api_key)
     workflow = build_workflow(llm)
+
 
     result = initial_state.model_dump()
     start_time = time.perf_counter()
@@ -359,8 +364,8 @@ async def quiz_generation(
     async def _run_workflow():
         """Run workflow in a detached task, outside the request cancel scope."""
         try:
-            with get_usage_metadata_callback() as usage_callback:
-                async for update in workflow.astream(
+            # with get_usage_metadata_callback() as usage_callback:
+            async for update in workflow.astream(
                     initial_state.model_dump(), stream_mode="updates", config=config
                 ):
                     for node_name, node_update in update.items():
@@ -372,7 +377,7 @@ async def quiz_generation(
 
             result["telemetry"] = {
                 "execution_time_seconds": round(execution_time, 4),
-                "tokens": _usage_telemetry(usage_callback.usage_metadata),
+                # "tokens": _usage_telemetry(usage_callback.usage_metadata),
             }
 
             # Signal completion

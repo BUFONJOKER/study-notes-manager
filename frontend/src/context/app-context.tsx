@@ -243,7 +243,7 @@ export function AppProvider({
 
         setProfile(user);
 
-        ws = new WebSocket(`ws://${process.env.NEXT_PUBLIC_API_URL}/notes/ws/${user.user_id}`);
+        ws = new WebSocket(`${process.env.NEXT_PUBLIC_API_URL_WS}/notes/ws/${user.user_id}`);
 
         // ✅ Listen for changes and re-fetch notes
         ws.onmessage = async (event) => {

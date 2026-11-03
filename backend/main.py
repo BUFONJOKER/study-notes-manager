@@ -14,11 +14,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-origins = [
-    "http://localhost",
-    "http://localhost:3000",  # adjust to your actual frontend port
-    "http://localhost:8000",
-]
+origins = ["http://localhost:3000"]
 
 app.add_middleware(
     CORSMiddleware,
