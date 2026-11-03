@@ -375,10 +375,10 @@ async def quiz_generation(
 
             execution_time = time.perf_counter() - start_time
 
-            result["telemetry"] = {
-                "execution_time_seconds": round(execution_time, 4),
-                # "tokens": _usage_telemetry(usage_callback.usage_metadata),
-            }
+            # result["telemetry"] = {
+            #     "execution_time_seconds": round(execution_time, 4),
+            #     # "tokens": _usage_telemetry(usage_callback.usage_metadata),
+            # }
 
             # Signal completion
             await queue.put(("done", None, None))

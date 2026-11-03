@@ -6,14 +6,14 @@ export type StudyNotesAnalysis = {
   critical_insights: string[];
 };
 
-export type UsageTelemetry = {
-  execution_time_seconds: number;
-  tokens: {
-    input_tokens: number;
-    output_tokens: number;
-    [key: string]: number; // Allows flexibility if more token metrics are added
-  };
-};
+// export type UsageTelemetry = {
+//   execution_time_seconds: number;
+//   tokens: {
+//     input_tokens: number;
+//     output_tokens: number;
+//     [key: string]: number; // Allows flexibility if more token metrics are added
+//   };
+// };
 
 /** Schema for creating a new note. */
 export type NoteCreate = {
@@ -65,7 +65,7 @@ export type QuizGenerationResponse = {
   summary_result: string;
   key_concepts: string[];
   generated_questions: QuizQuestion[];
-  telemetry: UsageTelemetry;
+  // telemetry: UsageTelemetry;
 };
 
 
