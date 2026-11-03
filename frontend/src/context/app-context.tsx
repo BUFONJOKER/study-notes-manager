@@ -32,8 +32,8 @@ import type {
   UserResponse,
 } from "@/types/users";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// const API_BASE_URL =
+//   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 type AppContextValue = {
   token: string | null;
@@ -213,6 +213,7 @@ export function AppProvider({
   // Load the authenticated user's profile and notes
   // --------------------------------------------------
 
+
   useEffect(() => {
     if (sessionStatus === "loading") return;
 
@@ -227,22 +228,35 @@ export function AppProvider({
     }
 
     let cancelled = false;
-
+    let ws: WebSocket | null = null;
     async function loadUserData() {
       try {
         setActionError(null);
         const userResponse = await api.get<UserResponse>(
-          `${API_BASE_URL}/users/me`,
+          `/users/me`,
           { headers: authHeaders },
         );
 
         if (cancelled) return;
 
         const user = userResponse.data;
+
         setProfile(user);
 
+        ws = new WebSocket(`ws://${process.env.NEXT_PUBLIC_API_URL}/notes/ws/${user.user_id}`);
+
+        // ✅ Listen for changes and re-fetch notes
+        ws.onmessage = async (event) => {
+          const notesResponse = await api.get<NoteResponse[]>(`/notes/read_note`, { headers: authHeaders });
+          setNotes(notesResponse.data);
+        };
+
+        ws.onerror = (error) => {
+          console.error("WebSocket error:", error);
+        };
+
         const notesResponse = await api.get<NoteResponse[]>(
-          `${API_BASE_URL}/notes/read_note`,
+          `/notes/read_note`,
           { headers: authHeaders },
         );
 
@@ -277,6 +291,7 @@ export function AppProvider({
 
     return () => {
       cancelled = true;
+      ws?.close();
     };
   }, [sessionStatus, token, authHeaders]);
 
@@ -310,7 +325,7 @@ export function AppProvider({
   const saveNote = useCallback(
     withErrorHandler(async (note: NoteCreate) => {
       const response = await api.post<NoteResponse>(
-        `${API_BASE_URL}/notes/create_note`,
+        `/notes/create_note`,
         note,
         { headers: authHeaders },
       );
@@ -333,7 +348,7 @@ export function AppProvider({
   const updateNote = useCallback(
     withErrorHandler(async (noteId: string, note: NoteUpdate) => {
       const response = await api.patch<NoteResponse>(
-        `${API_BASE_URL}/notes/update_note/${encodeURIComponent(noteId)}`,
+        `/notes/update_note/${encodeURIComponent(noteId)}`,
         note,
         { headers: authHeaders },
       );
@@ -364,7 +379,7 @@ export function AppProvider({
       const noteId = deleteTarget.note_id;
 
       await api.delete(
-        `${API_BASE_URL}/notes/delete_note/${encodeURIComponent(noteId)}`,
+        `/notes/delete_note/${encodeURIComponent(noteId)}`,
         { headers: authHeaders },
       );
 
@@ -389,7 +404,7 @@ export function AppProvider({
   const registerUser = useCallback(
     withErrorHandler(async (userData: UserCreate) => {
       const response = await api.post<UserResponse>(
-        `${API_BASE_URL}/users/`,
+        `/users/`,
         userData,
       );
 
@@ -403,7 +418,7 @@ export function AppProvider({
   const updateUser = useCallback(
     withErrorHandler(async (userId: number, userData: UserUpdate) => {
       const response = await api.put<UserResponse>(
-        `${API_BASE_URL}/users/${userId}`,
+        `/users/${userId}`,
         userData,
         { headers: authHeaders },
       );
@@ -415,7 +430,7 @@ export function AppProvider({
 
   const deleteAccount = useCallback(
     withErrorHandler(async (userId: number) => {
-      await api.delete(`${API_BASE_URL}/users/${userId}`, {
+      await api.delete(`/users/${userId}`, {
         headers: authHeaders,
       });
 

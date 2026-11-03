@@ -6,7 +6,7 @@ import time
 import asyncio
 from collections.abc import AsyncIterator
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 
 from starlette.concurrency import run_in_threadpool
@@ -35,6 +35,34 @@ from langchain_core.callbacks import get_usage_metadata_callback
 router = APIRouter(prefix="/notes", tags=["notes"])
 logger = logging.getLogger(__name__)
 
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            await connection.send_text(message)
+
+manager = ConnectionManager()
+
+@router.websocket("/ws/{user_id}")
+async def notes_websocket(websocket: WebSocket, user_id: str):
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text()  # keep connection alive
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+
+
+
 GPT_5_NANO_INPUT_USD_PER_MILLION = 0.05
 GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION = 0.005
 GPT_5_NANO_OUTPUT_USD_PER_MILLION = 0.40
@@ -44,6 +72,9 @@ current_user_dep = Annotated[User, Depends(get_current_user)]
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 DBDep = Annotated[Session, Depends(get_db)]
+
+
+
 
 
 def _usage_telemetry(usage_metadata: dict) -> dict:
@@ -101,7 +132,7 @@ async def read_notes(db: DBDep, current_user: current_user_dep):
 @router.post(
     "/create_note", response_model=NoteResponse, status_code=status.HTTP_201_CREATED
 )
-def create_note(request: NoteCreate, db: DBDep, current_user: current_user_dep):
+async def create_note(request: NoteCreate, db: DBDep, current_user: current_user_dep):
     """Create and save a new note. This endpoint is protected and requires authentication."""
 
     try:
@@ -139,6 +170,8 @@ def create_note(request: NoteCreate, db: DBDep, current_user: current_user_dep):
         db.commit()
         db.refresh(db_note)
 
+        await manager.broadcast(f"note_created:{db_note.note_id}")
+
     except Exception as e:
         db.rollback()
         raise HTTPException(
@@ -150,7 +183,7 @@ def create_note(request: NoteCreate, db: DBDep, current_user: current_user_dep):
 
 
 @router.delete("/delete_note/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_note(note_id: str, db: DBDep, current_user: current_user_dep):
+async def delete_note(note_id: str, db: DBDep, current_user: current_user_dep):
     """Delete a note owned by the authenticated user."""
 
     try:
@@ -173,6 +206,8 @@ def delete_note(note_id: str, db: DBDep, current_user: current_user_dep):
         db.delete(db_note)
         db.commit()
 
+        await manager.broadcast(f"note_deleted:{note_id}")
+
     except Exception:
         db.rollback()
         raise HTTPException(
@@ -182,7 +217,7 @@ def delete_note(note_id: str, db: DBDep, current_user: current_user_dep):
 
 
 @router.patch("/update_note/{note_id}", response_model=NoteResponse)
-def update_note(
+async def update_note(
     note_id: str, request: NoteUpdate, db: DBDep, current_user: current_user_dep
 ):
     """Update a note's title, subject, and content. This endpoint is protected and requires authentication."""
@@ -219,6 +254,8 @@ def update_note(
     try:
         db.commit()
         db.refresh(db_note)
+
+        await manager.broadcast(f"note_updated:{note_id}")
 
     except Exception:
         db.rollback()
