@@ -25,24 +25,35 @@ class StudyNotesAnalysis(BaseModel):
     main_theme: str = Field(
         description="The central topic or concept of the study notes."
     )
-
     key_points: list[str] = Field(
         min_length=3,
         max_length=5,
         description="Three to five essential ideas from the notes."
     )
-
     interconnections: str = Field(
         description="How the main concepts relate to each other."
     )
-
     practical_applications: list[str] = Field(
         description="Real-world applications of the concepts."
     )
-
     critical_insights: list[str] = Field(
         description="Important observations, implications, or deeper insights."
     )
+
+
+class QuizQuestion(BaseModel):
+    """Structured representation of a quiz question."""
+
+    question_text: str = Field(
+        description="The text of the quiz question."
+    )
+    answer_options: list[str] = Field(
+        description="List of 4 answer options for multiple-choice questions."
+    )
+    correct_answer: str = Field(
+        description="The exact string matching the correct answer option from answer_options."
+    )
+
 
 class AgentState(BaseModel):
     """State passed between nodes in the study notes workflow."""
@@ -56,21 +67,19 @@ class AgentState(BaseModel):
         default=None,
         description="Structured analysis of the study notes."
     )
-
     summary_result: str = Field(
         default="",
         description="Concise summary of the analysis."
     )
-
     key_concepts: list[str] = Field(
         default_factory=list,
         description="Extracted key concepts."
     )
-
-    generated_questions: list[str] = Field(
+    generated_questions: list[QuizQuestion] = Field(
         default_factory=list,
-        description="Generated quiz questions."
+        description="Generated structured quiz questions."
     )
+
 
 class SummaryOutput(BaseModel):
     """Structured output for the study notes summary."""
@@ -82,6 +91,7 @@ class SummaryOutput(BaseModel):
             "under 250 words."
         )
     )
+
 
 class KeyConceptsOutput(BaseModel):
     """Structured output containing key concepts."""
@@ -95,16 +105,14 @@ class KeyConceptsOutput(BaseModel):
         )
     )
 
+
 class QuizGenerationOutput(BaseModel):
     """Structured output containing quiz questions."""
 
-    generated_questions: list[str] = Field(
-        min_length=8,
-        max_length=12,
-        description=(
-            "Eight to twelve clear quiz questions covering different "
-            "difficulty levels, including understanding and application."
-        )
+    generated_questions: list[QuizQuestion] = Field(
+        min_length=10,
+        max_length=10,
+        description="List of structured multiple-choice quiz questions."
     )
 
 
