@@ -29,7 +29,6 @@ from agent.schemas.agent_state import AgentState
 
 
 from config import get_settings, Settings
-# from langchain_core.callbacks import get_usage_metadata_callback
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 logger = logging.getLogger(__name__)
@@ -61,56 +60,11 @@ async def notes_websocket(websocket: WebSocket, user_id: str):
         manager.disconnect(websocket)
 
 
-
-# GPT_5_NANO_INPUT_USD_PER_MILLION = 0.05
-# GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION = 0.005
-# GPT_5_NANO_OUTPUT_USD_PER_MILLION = 0.40
-
 # current user dependency for protected endpoints
 current_user_dep = Annotated[User, Depends(get_current_user)]
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 DBDep = Annotated[Session, Depends(get_db)]
-
-
-
-
-
-# def _usage_telemetry(usage_metadata: dict) -> dict:
-#     """Calculate GPT-5 nano usage and standard API pricing."""
-
-#     input_tokens = sum(
-#         usage.get("input_tokens", 0) for usage in usage_metadata.values()
-#     )
-
-#     output_tokens = sum(
-#         usage.get("output_tokens", 0) for usage in usage_metadata.values()
-#     )
-
-#     total_tokens = sum(
-#         usage.get("total_tokens", 0) for usage in usage_metadata.values()
-#     )
-
-#     cached_input_tokens = sum(
-#         usage.get("input_token_details", {}).get("cache_read", 0)
-#         for usage in usage_metadata.values()
-#     )
-
-#     uncached_input_tokens = max(input_tokens - cached_input_tokens, 0)
-
-#     estimated_cost_usd = (
-#         (uncached_input_tokens / 1_000_000) * GPT_5_NANO_INPUT_USD_PER_MILLION
-#         + (cached_input_tokens / 1_000_000) * GPT_5_NANO_CACHED_INPUT_USD_PER_MILLION
-#         + (output_tokens / 1_000_000) * GPT_5_NANO_OUTPUT_USD_PER_MILLION
-#     )
-#     return {
-#         "input": input_tokens,
-#         "cached_input": cached_input_tokens,
-#         "output": output_tokens,
-#         "total": total_tokens,
-#         "estimated_cost_usd": round(estimated_cost_usd, 6),
-#     }
-
 
 
 @router.get("/read_note", response_model=list[NoteResponse])
@@ -373,10 +327,6 @@ async def quiz_generation(
 
             execution_time = time.perf_counter() - start_time
 
-            # result["telemetry"] = {
-            #     "execution_time_seconds": round(execution_time, 4),
-            #     # "tokens": _usage_telemetry(usage_callback.usage_metadata),
-            # }
 
             # Signal completion
             await queue.put(("done", None, None))

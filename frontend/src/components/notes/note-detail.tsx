@@ -257,8 +257,6 @@ export function NoteDetail({ note_id }: { note_id: string }) {
                 </nav>
               </div>
 
-              {/* Quiz Status Card with respect to if quiz is generated or not ui should be different if quiz is generated and available */}
-
               {note.generated_questions !== null ? (
                 <div className="space-y-3 rounded-xl bg-[#E8EFE9] dark:bg-emerald-950/60 p-5 border border-slate-200/40 dark:border-slate-700/50">
                   <div className="flex items-center gap-3.5">

@@ -33,11 +33,6 @@ export function Sidebar() {
           <span>All notes</span>
           <span className={cn("nav-count")}>{notes.length}</span>
         </button>
-        {/* <button className={cn(nav.quiz ? "active" : "")} onClick={() => router.push(routes.quiz)}>
-          <Icon name="sparkle" />
-          <span>Quiz library </span>
-          <span className={cn("nav-count")}>{notes.filter(note => note.quiz !== null).length}</span>
-        </button> */}
       </nav>
 
       <div className={cn("side-section")}>
@@ -68,7 +63,6 @@ export function Sidebar() {
           <strong>{profile?.user_name}</strong>
           <small>@{profile?.user_name}</small>
         </span>
-        {/* <Icon name="more" /> */}
       </button>
     </aside>
   );

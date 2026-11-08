@@ -144,6 +144,4 @@ class QuizGenerationResponse(BaseModel):
         ...,
         description="Structured multiple-choice questions generated for the note.",
     )
-    # telemetry: UsageTelemetry = Field(
-    #     ..., description="Telemetry data related to the note processing workflow."
-    # )
+
