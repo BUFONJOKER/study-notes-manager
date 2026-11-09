@@ -15,7 +15,7 @@ Study Notes Manager is an application for creating, organizing, and studying not
 
 ## ⚙️ Backend Development
 
-The backend uses Python, FastAPI, PostgreSQL, SQLAlchemy, and LangChain.
+The backend uses Python, FastAPI, PostgreSQL/SQLite, SQLAlchemy, and LangChain.
 
 ```bash
 cd backend
