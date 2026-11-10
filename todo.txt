@@ -4,3 +4,4 @@ overall app and llm evaluation
 app is very slow to start both frontend and backend. It takes a long time to load the initial data and the UI is unresponsive during this time. Need to investigate performance bottlenecks and optimize the code for faster startup.
 
 i should be consistent
+i should be consistent
