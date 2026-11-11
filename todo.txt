@@ -5,3 +5,4 @@ app is very slow to start both frontend and backend. It takes a long time to loa
 
 i should be consistent
 i should be consistent
+11-11-2026    aj bhi nahi kuch kia pata nahi ma kab cosistent hoon ga jo bhi ha himmat nahi haarni
